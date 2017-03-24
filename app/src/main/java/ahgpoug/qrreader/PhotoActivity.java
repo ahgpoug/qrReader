@@ -17,6 +17,7 @@ import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -30,10 +31,13 @@ import com.karumi.dexter.Dexter;
 import java.io.File;
 import java.io.IOException;
 
+import ahgpoug.qrreader.objects.MySQLresponse;
+import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.permissions.PermissionsListener;
+import ahgpoug.qrreader.util.MySQLreader;
 import ahgpoug.qrreader.util.RealPathUtil;
 
-public class PhotoActivity extends AppCompatActivity {
+public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
     private SurfaceView cameraView;
     private BarcodeDetector barcodeDetector;
     private CameraSource cameraSource;
@@ -53,6 +57,20 @@ public class PhotoActivity extends AppCompatActivity {
 
         initViews();
         initEvents();
+    }
+
+    @Override
+    public void processFinish(Task task) {
+        if (task == null){
+            Toast.makeText(PhotoActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
+            initViews();
+            initEvents();
+        } else {
+            Intent intent = new Intent(PhotoActivity.this, SelectorActivity.class);
+            intent.putExtra("task", task);
+            startActivity(intent);
+        }
+
     }
 
     private void initViews(){
@@ -121,8 +139,8 @@ public class PhotoActivity extends AppCompatActivity {
                 final SparseArray<Barcode> barcodes = detections.getDetectedItems();
 
                 if (barcodes.size() != 0) {
-                    Log.d("My QR Code's Data", barcodes.valueAt(0).displayValue);
-                    startSelector(barcodes.valueAt(0).displayValue);
+                    Log.e("My QR Code's Data", barcodes.valueAt(0).displayValue);
+                    checkQrCode(barcodes.valueAt(0).displayValue);
                 }
             }
         });
@@ -159,21 +177,22 @@ public class PhotoActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.e("My QR Code's Data", "result");
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
             Uri uri = data.getData();
             Uri mImageCaptureUri = Uri.fromFile(new File(uriToFilename(uri)));
 
             try {
                 Bitmap qrCode = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
-                Frame myFrame = new Frame.Builder()
-                        .setBitmap(qrCode)
-                        .build();
+                Frame myFrame = new Frame.Builder().setBitmap(qrCode).build();
 
                 SparseArray<Barcode> barcodes = barcodeDetector.detect(myFrame);
 
+                Log.e("My QR Code's Data", String.valueOf(barcodes.size()));
+
                 if(barcodes.size() != 0) {
-                    Log.d("My QR Code's Data", barcodes.valueAt(0).displayValue);
-                    startSelector(barcodes.valueAt(0).displayValue);
+                    Log.e("My QR Code's Data", barcodes.valueAt(0).displayValue);
+                    checkQrCode(barcodes.valueAt(0).displayValue);
                 }
             } catch (IOException e){
                 e.printStackTrace();
@@ -194,10 +213,14 @@ public class PhotoActivity extends AppCompatActivity {
         return path;
     }
 
-    private void startSelector(String qrCode){
-        Intent intent = new Intent(PhotoActivity.this, SelectorActivity.class);
-        intent.putExtra("qrCode", qrCode);
-        barcodeDetector.release();
-        startActivity(intent);
+    private void checkQrCode(final String qrCode){
+        this.runOnUiThread(new Runnable() {
+            public void run() {
+                cameraSource.release();
+                MySQLreader reader = new MySQLreader(PhotoActivity.this);
+                reader.delegate = PhotoActivity.this;
+                reader.execute(qrCode);
+            }
+        });
     }
 }

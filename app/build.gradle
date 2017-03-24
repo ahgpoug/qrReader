@@ -37,4 +37,5 @@ dependencies {
 
     compile 'com.karumi:dexter:4.0.0'
     compile 'com.afollestad.material-dialogs:core:0.9.0.2'
+    compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
 }
