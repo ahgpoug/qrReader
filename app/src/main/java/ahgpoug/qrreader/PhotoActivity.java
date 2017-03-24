@@ -177,7 +177,6 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.e("My QR Code's Data", "result");
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
             Uri uri = data.getData();
             Uri mImageCaptureUri = Uri.fromFile(new File(uriToFilename(uri)));
@@ -187,8 +186,6 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
                 Frame myFrame = new Frame.Builder().setBitmap(qrCode).build();
 
                 SparseArray<Barcode> barcodes = barcodeDetector.detect(myFrame);
-
-                Log.e("My QR Code's Data", String.valueOf(barcodes.size()));
 
                 if(barcodes.size() != 0) {
                     Log.e("My QR Code's Data", barcodes.valueAt(0).displayValue);
