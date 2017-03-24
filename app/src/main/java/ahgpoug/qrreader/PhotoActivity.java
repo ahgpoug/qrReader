@@ -1,68 +1,103 @@
 package ahgpoug.qrreader;
 
-import android.*;
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
+import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
+import com.karumi.dexter.Dexter;
 
+import java.io.File;
 import java.io.IOException;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- */
+import ahgpoug.qrreader.permissions.PermissionsListener;
+import ahgpoug.qrreader.util.RealPathUtil;
+
 public class PhotoActivity extends AppCompatActivity {
-    SurfaceView cameraView;
-    BarcodeDetector barcodeDetector;
-    CameraSource cameraSource;
+    private SurfaceView cameraView;
+    private BarcodeDetector barcodeDetector;
+    private CameraSource cameraSource;
+    private FloatingActionButton galleryFab;
+    private static final int PICK_IMAGE_REQUEST = 10;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        initPermissions();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        initViews();
+        initEvents();
+    }
+
+    private void initViews(){
         setContentView(R.layout.activity_photo);
 
+        galleryFab = (FloatingActionButton)findViewById(R.id.readFromGalleryFAB);
         cameraView = (SurfaceView)findViewById(R.id.camera_view);
 
         barcodeDetector = new BarcodeDetector.Builder(this)
-                        .setBarcodeFormats(Barcode.QR_CODE)
-                        .build();
+                .setBarcodeFormats(Barcode.QR_CODE)
+                .build();
 
         cameraSource = new CameraSource
                 .Builder(this, barcodeDetector)
                 .setRequestedPreviewSize(640, 480)
                 .build();
+    }
+
+    private void initEvents(){
+        galleryFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT < 19) {
+                    Intent intent = new Intent();
+                    intent.setType("image/*");
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+                } else {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, PICK_IMAGE_REQUEST);
+                }
+            }
+        });
 
         cameraView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(PhotoActivity.this, Manifest.permission.CAMERA ) != PackageManager.PERMISSION_GRANTED)
-                    return;
-
                 try {
                     cameraSource.start(cameraView.getHolder());
-                } catch (IOException ie) {
-                    Log.e("CAMERA SOURCE", ie.getMessage());
+                } catch (SecurityException e){
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -86,26 +121,83 @@ public class PhotoActivity extends AppCompatActivity {
                 final SparseArray<Barcode> barcodes = detections.getDetectedItems();
 
                 if (barcodes.size() != 0) {
-                    Runnable runnable;
-                    cameraView.post(runnable = new Runnable() {
-                        public void run() {
-                            Toast.makeText(PhotoActivity.this, barcodes.valueAt(0).displayValue, Toast.LENGTH_SHORT).show();
-                            Log.e("MyTAG", barcodes.valueAt(0).displayValue);
-                            cameraView.removeCallbacks(this);
-                        }
-                    });
-
-
-
-                   /* barcodeInfo.post(new Runnable() {    // Use the post method of the TextView
-                        public void run() {
-                            barcodeInfo.setText(    // Update the TextView
-                                    barcodes.valueAt(0).displayValue
-                            );
-                        }
-                    });*/
+                    Log.d("My QR Code's Data", barcodes.valueAt(0).displayValue);
+                    startSelector(barcodes.valueAt(0).displayValue);
                 }
             }
         });
+    }
+
+    private void initPermissions() {
+
+        PermissionsListener permissionsListener = new PermissionsListener(this);
+
+        Dexter.withActivity(this)
+                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET)
+                .withListener(permissionsListener)
+                .check();
+    }
+
+    public void onPermissionsGranted() {
+        initViews();
+        initEvents();
+    }
+
+    public void onPermissionsDenied(String permission, boolean isPermanentlyDenied) {
+        new MaterialDialog.Builder(this)
+                .title("Ошибка")
+                .content("Для работы приложения необходимо принять все разрешения")
+                .positiveText(android.R.string.ok)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        PhotoActivity.this.finishAffinity();
+                    }
+                })
+                .show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
+            Uri uri = data.getData();
+            Uri mImageCaptureUri = Uri.fromFile(new File(uriToFilename(uri)));
+
+            try {
+                Bitmap qrCode = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
+                Frame myFrame = new Frame.Builder()
+                        .setBitmap(qrCode)
+                        .build();
+
+                SparseArray<Barcode> barcodes = barcodeDetector.detect(myFrame);
+
+                if(barcodes.size() != 0) {
+                    Log.d("My QR Code's Data", barcodes.valueAt(0).displayValue);
+                    startSelector(barcodes.valueAt(0).displayValue);
+                }
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+
+
+        }
+    }
+
+    private String uriToFilename(Uri uri) {
+        String path = null;
+
+        if (Build.VERSION.SDK_INT < 19) {
+            path = RealPathUtil.getRealPathFromURI_API11to18(PhotoActivity.this, uri);
+        } else {
+            path = RealPathUtil.getRealPathFromURI_API19(PhotoActivity.this, uri);
+        }
+        return path;
+    }
+
+    private void startSelector(String qrCode){
+        Intent intent = new Intent(PhotoActivity.this, SelectorActivity.class);
+        intent.putExtra("qrCode", qrCode);
+        barcodeDetector.release();
+        startActivity(intent);
     }
 }

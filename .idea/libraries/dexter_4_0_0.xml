@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="dexter-4.0.0">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.android/build-cache/4bc0cd961a90815df7474ed6d60ae1838a90adc3/output/res" />
+      <root url="jar://$USER_HOME$/.android/build-cache/4bc0cd961a90815df7474ed6d60ae1838a90adc3/output/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.karumi/dexter/4.0.0/88f48ed5566e6b0856453659c30417bb2feab6e4/dexter-4.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
