@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -16,16 +17,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import com.google.gson.Gson;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,20 +38,18 @@ import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.RealPathUtil;
-import ahgpoug.qrreader.util.Util;
 
 public class SelectorActivity extends AppCompatActivity implements OnStartDragListener{
     private static final int PICK_IMAGE_REQUEST = 10;
     private static final int CAMERA_REQUEST = 11;
     private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
 
-    private Task task;
+    private static Task task;
     private RecyclerView recyclerView;
     private PhotoRecyclerAdapter adapter;
     private static ArrayList<Photo> photoArrayList = new ArrayList<>();
     private ItemTouchHelper mItemTouchHelper;
     private static String id;
-    private MaterialDialog loadingDialog;
     private FloatingActionsMenu floatingActionsMenu;
 
     @Override
@@ -67,6 +67,14 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         super.onResume();
         floatingActionsMenu = (FloatingActionsMenu)findViewById(R.id.multiple_actions);
         floatingActionsMenu.collapse();
+    }
+
+    @Override
+    public void onBackPressed() {
+        id = "";
+        task = null;
+        photoArrayList.clear();
+        super.onBackPressed();
     }
 
     @Override
@@ -92,6 +100,9 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(adapter);
         mItemTouchHelper = new ItemTouchHelper(callback);
         mItemTouchHelper.attachToRecyclerView(recyclerView);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
     private void initEvents(){
@@ -133,39 +144,33 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
-            loadingDialog = new MaterialDialog.Builder(SelectorActivity.this)
-                    .content("Загрузка...")
-                    .progress(true, 0)
-                    .progressIndeterminateStyle(false)
-                    .cancelable(false)
-                    .show();
-
-            Uri uri = data.getData();
-            File file = new File(uriToFilename(uri));
-            Uri mImageCaptureUri = Uri.fromFile(file);
-
-            photoArrayList.add(new Photo(mImageCaptureUri, file.getName(), new Date(file.lastModified())));
-            adapter.notifyItemInserted(photoArrayList.size());
-            loadingDialog.dismiss();
-        } else if (requestCode == CAMERA_REQUEST) {
-            if (resultCode == Activity.RESULT_OK) {
-                loadingDialog = new MaterialDialog.Builder(SelectorActivity.this)
-                        .content("Загрузка...")
-                        .progress(true, 0)
-                        .progressIndeterminateStyle(false)
-                        .cancelable(false)
-                        .show();
-
-                File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/photos");
-                if (!path.exists())
-                    path.mkdirs();
-                File imageFile = new File(path, "photo_" + id + ".jpg");
-
-                photoArrayList.add(new Photo(Uri.fromFile(imageFile), imageFile.getName(), new Date(path.lastModified())));
-                adapter.notifyItemInserted(photoArrayList.size());
-                loadingDialog.dismiss();
-            }
+            new loadFromCamera().execute(data);
+        } else if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+            new loadFromGallery().execute();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_selector, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_send) {
+            Intent intent = new Intent(SelectorActivity.this, UploadActivity.class);
+            Gson gson = new Gson();
+            String jsonPhotos = gson.toJson(photoArrayList);
+
+            intent.putExtra("photos", jsonPhotos);
+            intent.putExtra("task", task);
+            startActivity(intent);
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private String uriToFilename(Uri uri) {
@@ -177,5 +182,69 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
             path = RealPathUtil.getRealPathFromURI_API19(SelectorActivity.this, uri);
         }
         return path;
+    }
+
+    class loadFromGallery extends AsyncTask<Void, Void, Void> {
+        private MaterialDialog loadingDialog;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            loadingDialog = new MaterialDialog.Builder(SelectorActivity.this)
+                    .content("Загрузка...")
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(false)
+                    .cancelable(false)
+                    .show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/photos");
+            if (!path.exists())
+                path.mkdirs();
+            File imageFile = new File(path, "photo_" + id + ".jpg");
+
+            photoArrayList.add(new Photo(Uri.fromFile(imageFile), imageFile.getName(), new Date(path.lastModified())));
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            adapter.notifyItemInserted(photoArrayList.size());
+            loadingDialog.dismiss();
+        }
+    }
+
+    class loadFromCamera extends AsyncTask<Intent, Void, Void> {
+        private MaterialDialog loadingDialog;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            loadingDialog = new MaterialDialog.Builder(SelectorActivity.this)
+                    .content("Загрузка...")
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(false)
+                    .cancelable(false)
+                    .show();
+        }
+
+        @Override
+        protected Void doInBackground(Intent... params) {
+            Intent data = params[0];
+            Uri uri = data.getData();
+            File file = new File(uriToFilename(uri));
+            Uri mImageCaptureUri = Uri.fromFile(file);
+
+            photoArrayList.add(new Photo(mImageCaptureUri, file.getName(), new Date(file.lastModified())));
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            adapter.notifyItemInserted(photoArrayList.size());
+            loadingDialog.dismiss();
+        }
     }
 }

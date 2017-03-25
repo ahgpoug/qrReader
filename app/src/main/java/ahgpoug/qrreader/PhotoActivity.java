@@ -34,7 +34,7 @@ import java.io.IOException;
 import ahgpoug.qrreader.interfaces.MySQLresponse;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.permissions.PermissionsListener;
-import ahgpoug.qrreader.util.MySQLreader;
+import ahgpoug.qrreader.asyncTasks.MySQLreader;
 import ahgpoug.qrreader.util.RealPathUtil;
 
 public class PhotoActivity extends AppCompatActivity implements MySQLresponse{

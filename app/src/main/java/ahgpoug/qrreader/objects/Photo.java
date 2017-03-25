@@ -1,9 +1,11 @@
 package ahgpoug.qrreader.objects;
 
 import android.net.Uri;
+
+import java.io.Serializable;
 import java.util.Date;
 
-public class Photo {
+public class Photo{
     private Uri uri;
     private String name;
     private Date modDate;

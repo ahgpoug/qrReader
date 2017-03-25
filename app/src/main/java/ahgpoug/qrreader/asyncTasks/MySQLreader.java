@@ -1,4 +1,4 @@
-package ahgpoug.qrreader.util;
+package ahgpoug.qrreader.asyncTasks;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -45,7 +45,7 @@ public class MySQLreader extends AsyncTask<String, Void, Object>{
     protected Object doInBackground(String... params) {
         try{
             Task task = new Task();
-            String link = "http://ahgpoug.xyz/index.php?id=" + params[0];
+            String link = "http://ahgpoug.xyz/tasks.php?id=" + params[0];
 
             URL url = new URL(link);
             HttpClient client = new DefaultHttpClient();
