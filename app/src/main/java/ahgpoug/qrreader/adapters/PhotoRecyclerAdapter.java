@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.util.Util;
 
@@ -79,6 +80,7 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
             Glide.with(context)
                     .load(values.get(position).getUri())
                     .asBitmap()
+                    .placeholder(R.drawable.placeholder)
                     .into(new BitmapImageViewTarget(holder.image) {
                         @Override
                         protected void setResource(Bitmap resource) {

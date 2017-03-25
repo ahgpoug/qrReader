@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
-            android:src="@drawable/test"/>
+            android:src="@drawable/placeholder"/>
 
         <LinearLayout
             android:id="@+id/bottom"
