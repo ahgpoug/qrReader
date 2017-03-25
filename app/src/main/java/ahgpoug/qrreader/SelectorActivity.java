@@ -11,19 +11,13 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.util.SparseArray;
 import android.view.View;
-import android.widget.Toast;
-
-import com.google.android.gms.vision.Frame;
-import com.google.android.gms.vision.barcode.Barcode;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
 import ahgpoug.qrreader.objects.Photo;
@@ -36,7 +30,7 @@ public class SelectorActivity extends AppCompatActivity{
     private RecyclerView recyclerView;
     private PhotoRecyclerAdapter adapter;
     private FloatingActionButton floatingActionButton;
-    private ArrayList<Photo> photoArrayList = new ArrayList<>();
+    private static ArrayList<Photo> photoArrayList = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,7 +47,7 @@ public class SelectorActivity extends AppCompatActivity{
         floatingActionButton = (FloatingActionButton)findViewById(R.id.addPhotoFab);
 
         recyclerView.setHasFixedSize(true);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
         recyclerView.setLayoutManager(layoutManager);
         adapter = new PhotoRecyclerAdapter(getApplicationContext(), photoArrayList);
         recyclerView.setAdapter(adapter);
@@ -82,13 +76,13 @@ public class SelectorActivity extends AppCompatActivity{
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
             try {
-            Uri uri = data.getData();
-            Uri mImageCaptureUri = Uri.fromFile(new File(uriToFilename(uri)));
-            Bitmap photo = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
+                Uri uri = data.getData();
+                File file = new File(uriToFilename(uri));
+                Uri mImageCaptureUri = Uri.fromFile(file);
+                Bitmap photo = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
 
-            photoArrayList.add(new Photo(mImageCaptureUri, (new File(uriToFilename(uri)).getName()), photo));
-            adapter.notifyItemInserted(photoArrayList.size());
-
+                photoArrayList.add(new Photo(mImageCaptureUri, file.getName(), photo, new Date(file.lastModified())));
+                adapter.notifyItemInserted(photoArrayList.size());
             } catch (IOException e){
                 e.printStackTrace();
             }

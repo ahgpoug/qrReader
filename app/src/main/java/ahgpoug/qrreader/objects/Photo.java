@@ -3,15 +3,19 @@ package ahgpoug.qrreader.objects;
 import android.graphics.Bitmap;
 import android.net.Uri;
 
+import java.util.Date;
+
 public class Photo {
     private Uri uri;
     private String name;
     private Bitmap bitmap;
+    private Date modDate;
 
-    public Photo(Uri uri, String name, Bitmap bitmap) {
+    public Photo(Uri uri, String name, Bitmap bitmap, Date modDate) {
         this.uri = uri;
         this.name = name;
         this.bitmap = bitmap;
+        this.modDate = modDate;
     }
 
     public Uri getUri() {
@@ -36,5 +40,13 @@ public class Photo {
 
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
+    }
+
+    public Date getModDate() {
+        return modDate;
+    }
+
+    public void setModDate(Date modDate) {
+        this.modDate = modDate;
     }
 }
