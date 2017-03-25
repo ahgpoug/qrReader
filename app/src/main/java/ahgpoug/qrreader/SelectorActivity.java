@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -18,6 +19,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.getbase.floatingactionbutton.FloatingActionsMenu;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -48,6 +50,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     private ItemTouchHelper mItemTouchHelper;
     private static String id;
     private MaterialDialog loadingDialog;
+    private FloatingActionsMenu floatingActionsMenu;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,6 +60,13 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         task = (Task) getIntent().getExtras().getSerializable("task");
         initViews();
         initEvents();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        floatingActionsMenu = (FloatingActionsMenu)findViewById(R.id.multiple_actions);
+        floatingActionsMenu.collapse();
     }
 
     @Override
@@ -89,11 +99,11 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         action_camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                File path = new File(SelectorActivity.this.getFilesDir(), "qrreader/photos");
+                File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/photos");
                 if (!path.exists())
                     path.mkdirs();
                 id = new SimpleDateFormat("HHmmss").format(new Date());
-                File image = new File(path, "image_" + id + ".jpg");
+                File image = new File(path, "photo_" + id + ".jpg");
                 Uri imageUri = FileProvider.getUriForFile(SelectorActivity.this, CAPTURE_IMAGE_FILE_PROVIDER, image);
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
@@ -146,10 +156,10 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
                         .cancelable(false)
                         .show();
 
-                File path = new File(getFilesDir(), "qrreader/photos");
+                File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/photos");
                 if (!path.exists())
                     path.mkdirs();
-                File imageFile = new File(path, "image_" + id + ".jpg");
+                File imageFile = new File(path, "photo_" + id + ".jpg");
 
                 photoArrayList.add(new Photo(Uri.fromFile(imageFile), imageFile.getName(), new Date(path.lastModified())));
                 adapter.notifyItemInserted(photoArrayList.size());
