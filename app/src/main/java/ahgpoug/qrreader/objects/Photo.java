@@ -10,12 +10,14 @@ public class Photo {
     private String name;
     private Bitmap bitmap;
     private Date modDate;
+    private Bitmap thumbnail;
 
-    public Photo(Uri uri, String name, Bitmap bitmap, Date modDate) {
+    public Photo(Uri uri, String name, Bitmap bitmap, Date modDate, Bitmap thumbnail) {
         this.uri = uri;
         this.name = name;
         this.bitmap = bitmap;
         this.modDate = modDate;
+        this.thumbnail = thumbnail;
     }
 
     public Uri getUri() {
@@ -48,5 +50,13 @@ public class Photo {
 
     public void setModDate(Date modDate) {
         this.modDate = modDate;
+    }
+
+    public Bitmap getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(Bitmap thumbnail) {
+        this.thumbnail = thumbnail;
     }
 }

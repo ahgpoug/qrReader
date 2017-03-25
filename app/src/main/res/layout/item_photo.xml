@@ -6,7 +6,9 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_margin="5dp"
-    card_view:cardCornerRadius="0dp">
+    card_view:cardCornerRadius="0dp"
+    card_view:cardElevation="4dp"
+    card_view:cardUseCompatPadding="true">
 
     <LinearLayout
         android:orientation="vertical"
@@ -21,6 +23,7 @@
             android:src="@drawable/test"/>
 
         <LinearLayout
+            android:id="@+id/bottom"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">

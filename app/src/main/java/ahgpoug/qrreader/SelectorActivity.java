@@ -12,6 +12,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
 import java.io.File;
@@ -20,17 +21,21 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
+import ahgpoug.qrreader.interfaces.OnStartDragListener;
+import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.RealPathUtil;
+import ahgpoug.qrreader.util.Util;
 
-public class SelectorActivity extends AppCompatActivity{
+public class SelectorActivity extends AppCompatActivity implements OnStartDragListener{
     private static final int PICK_IMAGE_REQUEST = 10;
     private Task task;
     private RecyclerView recyclerView;
     private PhotoRecyclerAdapter adapter;
     private FloatingActionButton floatingActionButton;
     private static ArrayList<Photo> photoArrayList = new ArrayList<>();
+    private ItemTouchHelper mItemTouchHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,15 +47,30 @@ public class SelectorActivity extends AppCompatActivity{
         initEvents();
     }
 
+    @Override
+    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+        mItemTouchHelper.startDrag(viewHolder);
+    }
+
     private void initViews(){
+        setTitle("Загрузка изображений");
         recyclerView = (RecyclerView)findViewById(R.id.recycler);
         floatingActionButton = (FloatingActionButton)findViewById(R.id.addPhotoFab);
 
         recyclerView.setHasFixedSize(true);
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
+        int spanCount = 2;
+
+        if (SelectorActivity.this.getResources().getConfiguration().orientation == 2)
+            spanCount = 4;
+
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), spanCount);
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new PhotoRecyclerAdapter(getApplicationContext(), photoArrayList);
+        adapter = new PhotoRecyclerAdapter(getApplicationContext(), photoArrayList, this);
         recyclerView.setAdapter(adapter);
+
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(adapter);
+        mItemTouchHelper = new ItemTouchHelper(callback);
+        mItemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     private void initEvents(){
@@ -81,7 +101,7 @@ public class SelectorActivity extends AppCompatActivity{
                 Uri mImageCaptureUri = Uri.fromFile(file);
                 Bitmap photo = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
 
-                photoArrayList.add(new Photo(mImageCaptureUri, file.getName(), photo, new Date(file.lastModified())));
+                photoArrayList.add(new Photo(mImageCaptureUri, file.getName(), photo, new Date(file.lastModified()), Util.cropBitmapCenter(photo)));
                 adapter.notifyItemInserted(photoArrayList.size());
             } catch (IOException e){
                 e.printStackTrace();

@@ -31,7 +31,7 @@ import com.karumi.dexter.Dexter;
 import java.io.File;
 import java.io.IOException;
 
-import ahgpoug.qrreader.objects.MySQLresponse;
+import ahgpoug.qrreader.interfaces.MySQLresponse;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.permissions.PermissionsListener;
 import ahgpoug.qrreader.util.MySQLreader;

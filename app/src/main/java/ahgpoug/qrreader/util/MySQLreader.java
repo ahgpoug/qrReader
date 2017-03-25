@@ -1,11 +1,8 @@
 package ahgpoug.qrreader.util;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 
@@ -20,8 +17,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 
-import ahgpoug.qrreader.SelectorActivity;
-import ahgpoug.qrreader.objects.MySQLresponse;
+import ahgpoug.qrreader.interfaces.MySQLresponse;
 import ahgpoug.qrreader.objects.Task;
 
 public class MySQLreader extends AsyncTask<String, Void, Object>{

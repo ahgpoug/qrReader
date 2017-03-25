@@ -3,9 +3,12 @@ package ahgpoug.qrreader.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -14,32 +17,49 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import ahgpoug.qrreader.R;
+import ahgpoug.qrreader.interfaces.ItemTouchHelperAdapter;
+import ahgpoug.qrreader.interfaces.ItemTouchHelperViewHolder;
+import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.objects.Photo;
-import ahgpoug.qrreader.util.Util;
 
-public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdapter.ViewHolder> {
+public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdapter.ViewHolder> implements ItemTouchHelperAdapter {
 
     private Context context;
     private ArrayList<Photo> values;
+    private final OnStartDragListener dragStartListener;
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder {
         private ImageView image;
         private TextView name;
         private TextView modDate;
+        private View bottom;
 
         private ViewHolder(View view) {
             super(view);
             image = (ImageView) view.findViewById(R.id.image);
             name = (TextView) view.findViewById(R.id.name);
             modDate = (TextView) view.findViewById(R.id.modDate);
+            bottom = view.findViewById(R.id.bottom);
+        }
+
+        @Override
+        public void onItemSelected() {
+            //itemView.setBackgroundColor(Color.LTGRAY);
+        }
+
+        @Override
+        public void onItemClear() {
+            //itemView.setBackgroundColor(0);
         }
     }
 
-    public PhotoRecyclerAdapter(Context context, ArrayList<Photo> values) {
+    public PhotoRecyclerAdapter(Context context, ArrayList<Photo> values, OnStartDragListener dragStartListener) {
         this.context = context;
         this.values = values;
+        this.dragStartListener = dragStartListener;
     }
 
     @Override
@@ -52,9 +72,19 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         try {
-            holder.image.setImageBitmap(Util.cropBitmapCenter(values.get(position).getBitmap()));
+            holder.image.setImageBitmap(values.get(position).getThumbnail());
             holder.name.setText(values.get(position).getName());
             holder.modDate.setText(new SimpleDateFormat("MMM dd, HH:mm:ss").format(values.get(position).getModDate()));
+
+            holder.bottom.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                        dragStartListener.onStartDrag(holder);
+                    }
+                    return false;
+                }
+            });
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -64,5 +94,18 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
     @Override
     public int getItemCount() {
         return values.size();
+    }
+
+    @Override
+    public void onItemDismiss(int position) {
+        values.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition) {
+        Collections.swap(values, fromPosition, toPosition);
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
     }
 }

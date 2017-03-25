@@ -21,7 +21,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         app:fabSize="normal"
-        app:backgroundTint="@android:color/black"
+        app:backgroundTint="@color/colorPrimary"
         app:srcCompat="@drawable/ic_photo_white_48dp" />
 
 </android.support.design.widget.CoordinatorLayout>
