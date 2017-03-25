@@ -15,6 +15,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.bumptech.glide.util.Util;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,7 +76,16 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         try {
-            holder.image.setImageBitmap(values.get(position).getThumbnail());
+            Glide.with(context)
+                    .load(values.get(position).getUri())
+                    .asBitmap()
+                    .into(new BitmapImageViewTarget(holder.image) {
+                        @Override
+                        protected void setResource(Bitmap resource) {
+                            resource = ahgpoug.qrreader.util.Util.cropBitmapCenter(resource);
+                            super.setResource(resource);
+                        }
+                    });
             holder.name.setText(values.get(position).getName());
             holder.modDate.setText(new SimpleDateFormat("MMM dd, HH:mm:ss").format(values.get(position).getModDate()));
 

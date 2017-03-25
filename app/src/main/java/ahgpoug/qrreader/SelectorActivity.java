@@ -3,20 +3,28 @@ package ahgpoug.qrreader;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -30,12 +38,16 @@ import ahgpoug.qrreader.util.Util;
 
 public class SelectorActivity extends AppCompatActivity implements OnStartDragListener{
     private static final int PICK_IMAGE_REQUEST = 10;
+    private static final int CAMERA_REQUEST = 11;
+    private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
+
     private Task task;
     private RecyclerView recyclerView;
     private PhotoRecyclerAdapter adapter;
-    private FloatingActionButton floatingActionButton;
     private static ArrayList<Photo> photoArrayList = new ArrayList<>();
     private ItemTouchHelper mItemTouchHelper;
+    private static String id;
+    private MaterialDialog loadingDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,7 +67,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     private void initViews(){
         setTitle("Загрузка изображений");
         recyclerView = (RecyclerView)findViewById(R.id.recycler);
-        floatingActionButton = (FloatingActionButton)findViewById(R.id.addPhotoFab);
 
         recyclerView.setHasFixedSize(true);
         int spanCount = 2;
@@ -74,9 +85,26 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     private void initEvents(){
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+        final com.getbase.floatingactionbutton.FloatingActionButton action_camera = (com.getbase.floatingactionbutton.FloatingActionButton) findViewById(R.id.action_camera);
+        action_camera.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
+                File path = new File(SelectorActivity.this.getFilesDir(), "qrreader/photos");
+                if (!path.exists())
+                    path.mkdirs();
+                id = new SimpleDateFormat("HHmmss").format(new Date());
+                File image = new File(path, "image_" + id + ".jpg");
+                Uri imageUri = FileProvider.getUriForFile(SelectorActivity.this, CAPTURE_IMAGE_FILE_PROVIDER, image);
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                startActivityForResult(intent, CAMERA_REQUEST);
+            }
+        });
+
+        final com.getbase.floatingactionbutton.FloatingActionButton action_gallery = (com.getbase.floatingactionbutton.FloatingActionButton) findViewById(R.id.action_gallery);
+        action_gallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 if (Build.VERSION.SDK_INT < 19) {
                     Intent intent = new Intent();
                     intent.setType("image/*");
@@ -95,16 +123,37 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
-            try {
-                Uri uri = data.getData();
-                File file = new File(uriToFilename(uri));
-                Uri mImageCaptureUri = Uri.fromFile(file);
-                Bitmap photo = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
+            loadingDialog = new MaterialDialog.Builder(SelectorActivity.this)
+                    .content("Загрузка...")
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(false)
+                    .cancelable(false)
+                    .show();
 
-                photoArrayList.add(new Photo(mImageCaptureUri, file.getName(), photo, new Date(file.lastModified()), Util.cropBitmapCenter(photo)));
+            Uri uri = data.getData();
+            File file = new File(uriToFilename(uri));
+            Uri mImageCaptureUri = Uri.fromFile(file);
+
+            photoArrayList.add(new Photo(mImageCaptureUri, file.getName(), new Date(file.lastModified())));
+            adapter.notifyItemInserted(photoArrayList.size());
+            loadingDialog.dismiss();
+        } else if (requestCode == CAMERA_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
+                loadingDialog = new MaterialDialog.Builder(SelectorActivity.this)
+                        .content("Загрузка...")
+                        .progress(true, 0)
+                        .progressIndeterminateStyle(false)
+                        .cancelable(false)
+                        .show();
+
+                File path = new File(getFilesDir(), "qrreader/photos");
+                if (!path.exists())
+                    path.mkdirs();
+                File imageFile = new File(path, "image_" + id + ".jpg");
+
+                photoArrayList.add(new Photo(Uri.fromFile(imageFile), imageFile.getName(), new Date(path.lastModified())));
                 adapter.notifyItemInserted(photoArrayList.size());
-            } catch (IOException e){
-                e.printStackTrace();
+                loadingDialog.dismiss();
             }
         }
     }
