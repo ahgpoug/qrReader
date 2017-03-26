@@ -2,7 +2,6 @@ package ahgpoug.qrreader.objects;
 
 import android.net.Uri;
 
-import java.io.Serializable;
 import java.util.Date;
 
 public class Photo{
@@ -20,10 +19,6 @@ public class Photo{
         return uri;
     }
 
-    public void setUri(Uri uri) {
-        this.uri = uri;
-    }
-
     public String getName() {
         return name;
     }
@@ -34,9 +29,5 @@ public class Photo{
 
     public Date getModDate() {
         return modDate;
-    }
-
-    public void setModDate(Date modDate) {
-        this.modDate = modDate;
     }
 }

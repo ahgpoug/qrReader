@@ -38,11 +38,14 @@ import ahgpoug.qrreader.asyncTasks.MySQLreader;
 import ahgpoug.qrreader.util.RealPathUtil;
 
 public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
+    private static final int PICK_IMAGE_REQUEST = 10;
+
     private SurfaceView cameraView;
     private BarcodeDetector barcodeDetector;
     private CameraSource cameraSource;
     private FloatingActionButton galleryFab;
-    private static final int PICK_IMAGE_REQUEST = 10;
+
+    private boolean permissionsGranted = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,8 +58,10 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
     protected void onResume() {
         super.onResume();
 
-        initViews();
-        initEvents();
+        if (permissionsGranted) {
+            initViews();
+            initEvents();
+        }
     }
 
     @Override
@@ -137,7 +142,6 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
                 final SparseArray<Barcode> barcodes = detections.getDetectedItems();
 
                 if (barcodes.size() != 0) {
-                    Log.e("My QR Code's Data", barcodes.valueAt(0).displayValue);
                     checkQrCode(barcodes.valueAt(0).displayValue);
                 }
             }
@@ -151,14 +155,18 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
                 .withPermissions(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS)
                 .withListener(permissionsListener)
                 .check();
+
+        Log.e("MyTAG", "initiated");
     }
 
     public void onPermissionsGranted() {
+        permissionsGranted = true;
+
         initViews();
         initEvents();
     }
 
-    public void onPermissionsDenied(String permission, boolean isPermanentlyDenied) {
+    public void onPermissionsDenied() {
         new MaterialDialog.Builder(this)
                 .title("Ошибка")
                 .content("Для работы приложения необходимо принять все разрешения")

@@ -36,6 +36,7 @@ import ahgpoug.qrreader.interfaces.responses.UploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.RealPathUtil;
+import ahgpoug.qrreader.util.Util;
 
 public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, UploaderResponse{
     private static final int PICK_IMAGE_REQUEST = 10;
@@ -43,7 +44,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
 
     private static Task task;
-    private RecyclerView recyclerView;
     private PhotoRecyclerAdapter adapter;
     private static ArrayList<Photo> photoArrayList = new ArrayList<>();
     private ItemTouchHelper mItemTouchHelper;
@@ -57,6 +57,8 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         task = (Task) getIntent().getExtras().getSerializable("task");
         initViews();
         initEvents();
+
+        Util.getCurrentData(SelectorActivity.this);
     }
 
     @Override
@@ -89,7 +91,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
 
     private void initViews(){
         setTitle("Загрузка изображений");
-        recyclerView = (RecyclerView)findViewById(R.id.recycler);
+        RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recycler);
 
         recyclerView.setHasFixedSize(true);
         int spanCount = 2;

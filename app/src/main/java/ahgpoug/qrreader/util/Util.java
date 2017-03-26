@@ -3,7 +3,10 @@ package ahgpoug.qrreader.util;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.provider.ContactsContract;
+import android.util.Log;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -52,5 +55,22 @@ public class Util {
                 return parts[0];
         }
         return null;
+    }
+
+    public static void getCurrentData(Context context){
+        Cursor c = context.getContentResolver().query(ContactsContract.Profile.CONTENT_URI, null, null, null, null);
+        int count = c.getCount();
+        String[] columnNames = c.getColumnNames();
+        boolean b = c.moveToFirst();
+        int position = c.getPosition();
+        if (count == 1 && position == 0) {
+            for (int j = 0; j < columnNames.length; j++) {
+                Log.e("MyTAG", columnNames[j]);
+                String columnName = columnNames[j];
+                String columnValue = c.getString(c.getColumnIndex(columnName));
+                //Use the values
+            }
+        }
+        c.close();
     }
 }
