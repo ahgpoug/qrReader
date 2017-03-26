@@ -77,7 +77,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
         mItemTouchHelper.startDrag(viewHolder);
-        Log.e("MyTAG", task.getId());
     }
 
     @Override
@@ -98,9 +97,9 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         if (SelectorActivity.this.getResources().getConfiguration().orientation == 2)
             spanCount = 4;
 
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), spanCount);
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(SelectorActivity.this, spanCount);
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new PhotoRecyclerAdapter(getApplicationContext(), photoArrayList, this);
+        adapter = new PhotoRecyclerAdapter(SelectorActivity.this, photoArrayList, this);
         recyclerView.setAdapter(adapter);
 
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(adapter);
@@ -185,7 +184,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         return path;
     }
 
-    class loadFromGallery extends AsyncTask<Void, Void, Void> {
+    private class loadFromGallery extends AsyncTask<Void, Void, Void> {
         private MaterialDialog loadingDialog;
         @Override
         protected void onPreExecute() {
@@ -217,7 +216,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         }
     }
 
-    class loadFromCamera extends AsyncTask<Intent, Void, Void> {
+    private class loadFromCamera extends AsyncTask<Intent, Void, Void> {
         private MaterialDialog loadingDialog;
         @Override
         protected void onPreExecute() {

@@ -145,7 +145,6 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
     }
 
     private void initPermissions() {
-
         PermissionsListener permissionsListener = new PermissionsListener(this);
 
         Dexter.withActivity(this)
@@ -192,8 +191,6 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
             } catch (IOException e){
                 e.printStackTrace();
             }
-
-
         }
     }
 

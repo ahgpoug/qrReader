@@ -5,8 +5,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.support.annotation.NonNull;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,6 +17,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
@@ -75,10 +79,10 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
         try {
             Glide.with(context)
-                    .load(values.get(position).getUri())
+                    .load(values.get(holder.getLayoutPosition()).getUri())
                     .asBitmap()
                     .placeholder(R.drawable.placeholder)
                     .into(new BitmapImageViewTarget(holder.image) {
@@ -88,9 +92,33 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
                             super.setResource(resource);
                         }
                     });
-            holder.name.setText(values.get(position).getName());
-            holder.modDate.setText(new SimpleDateFormat("MMM dd, HH:mm:ss").format(values.get(position).getModDate()));
-
+            holder.name.setText(values.get(holder.getLayoutPosition()).getName());
+            holder.modDate.setText(new SimpleDateFormat("MMM dd, HH:mm:ss").format(values.get(holder.getLayoutPosition()).getModDate()));
+            holder.image.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    new MaterialDialog.Builder(context)
+                            .title("Удаление")
+                            .content("Вы действительно хотите удалить данное изображение?")
+                            .positiveText(android.R.string.ok)
+                            .negativeText(android.R.string.no)
+                            .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                @Override
+                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                    values.remove(holder.getLayoutPosition());
+                                    notifyDataSetChanged();
+                                }
+                            })
+                            .onNegative(new MaterialDialog.SingleButtonCallback() {
+                                @Override
+                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                    return false;
+                }
+            });
             holder.bottom.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -119,7 +147,15 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
 
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
-        Collections.swap(values, fromPosition, toPosition);
+        if (fromPosition < toPosition) {
+            for (int i = fromPosition; i < toPosition; i++) {
+                Collections.swap(values, i, i + 1);
+            }
+        } else {
+            for (int i = fromPosition; i > toPosition; i--) {
+                Collections.swap(values, i, i - 1);
+            }
+        }
         notifyItemMoved(fromPosition, toPosition);
         return true;
     }
