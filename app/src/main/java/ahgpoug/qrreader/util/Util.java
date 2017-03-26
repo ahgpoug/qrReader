@@ -63,13 +63,18 @@ public class Util {
         String[] columnNames = c.getColumnNames();
         boolean b = c.moveToFirst();
         int position = c.getPosition();
+        Log.e("MyTAG", String.valueOf(count) + " " + String.valueOf(position));
         if (count == 1 && position == 0) {
             for (int j = 0; j < columnNames.length; j++) {
+                Log.e("MyTAG", "cycle");
                 Log.e("MyTAG", columnNames[j]);
                 String columnName = columnNames[j];
                 String columnValue = c.getString(c.getColumnIndex(columnName));
+                Log.e("MyTAG", columnValue);
                 //Use the values
             }
+        } else {
+            Log.e("MyTAG", "notcycle");
         }
         c.close();
     }

@@ -61,13 +61,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        FloatingActionsMenu floatingActionsMenu = (FloatingActionsMenu)findViewById(R.id.multiple_actions);
-        floatingActionsMenu.collapse();
-    }
-
-    @Override
     public void onBackPressed() {
         id = "";
         task = null;
@@ -185,17 +178,15 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         return path;
     }
 
+    private void hideFAM(){
+        FloatingActionsMenu floatingActionsMenu = (FloatingActionsMenu)findViewById(R.id.multiple_actions);
+        floatingActionsMenu.collapse();
+    }
+
     private class loadFromGallery extends AsyncTask<Void, Void, Void> {
-        private MaterialDialog loadingDialog;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            loadingDialog = new MaterialDialog.Builder(SelectorActivity.this)
-                    .content("Загрузка...")
-                    .progress(true, 0)
-                    .progressIndeterminateStyle(false)
-                    .cancelable(false)
-                    .show();
         }
 
         @Override
@@ -213,21 +204,14 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             adapter.notifyItemInserted(photoArrayList.size());
-            loadingDialog.dismiss();
+            hideFAM();
         }
     }
 
     private class loadFromCamera extends AsyncTask<Intent, Void, Void> {
-        private MaterialDialog loadingDialog;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            loadingDialog = new MaterialDialog.Builder(SelectorActivity.this)
-                    .content("Загрузка...")
-                    .progress(true, 0)
-                    .progressIndeterminateStyle(false)
-                    .cancelable(false)
-                    .show();
         }
 
         @Override
@@ -245,7 +229,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             adapter.notifyItemInserted(photoArrayList.size());
-            loadingDialog.dismiss();
+            hideFAM();
         }
     }
 }

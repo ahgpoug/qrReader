@@ -90,6 +90,7 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
         cameraSource = new CameraSource
                 .Builder(this, barcodeDetector)
                 .setRequestedPreviewSize(640, 480)
+                .setAutoFocusEnabled(true)
                 .build();
     }
 
@@ -151,7 +152,13 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
         PermissionsListener permissionsListener = new PermissionsListener(this);
 
         Dexter.withActivity(this)
-                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS)
+                .withPermissions(Manifest.permission.CAMERA,
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.INTERNET,
+                        Manifest.permission.GET_ACCOUNTS,
+                        Manifest.permission.READ_CONTACTS,
+                        Manifest.permission.WRITE_CONTACTS)
                 .withListener(permissionsListener)
                 .check();
     }
