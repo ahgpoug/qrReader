@@ -6,13 +6,12 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -31,10 +30,10 @@ import com.karumi.dexter.Dexter;
 import java.io.File;
 import java.io.IOException;
 
+import ahgpoug.qrreader.asyncTasks.MySQLreader;
 import ahgpoug.qrreader.interfaces.responses.MySQLresponse;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.permissions.PermissionsListener;
-import ahgpoug.qrreader.asyncTasks.MySQLreader;
 import ahgpoug.qrreader.util.RealPathUtil;
 
 public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
@@ -155,8 +154,6 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
                 .withPermissions(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS)
                 .withListener(permissionsListener)
                 .check();
-
-        Log.e("MyTAG", "initiated");
     }
 
     public void onPermissionsGranted() {
@@ -193,7 +190,6 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
                 SparseArray<Barcode> barcodes = barcodeDetector.detect(myFrame);
 
                 if(barcodes.size() != 0) {
-                    Log.e("My QR Code's Data", barcodes.valueAt(0).displayValue);
                     checkQrCode(barcodes.valueAt(0).displayValue);
                 }
             } catch (IOException e){
