@@ -2,8 +2,6 @@ package ahgpoug.qrreader;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -11,7 +9,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -24,8 +21,6 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.dropbox.core.DbxApiException;
-import com.dropbox.core.DbxException;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 
 import java.io.File;
@@ -34,14 +29,15 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
-import ahgpoug.qrreader.asyncTasks.fileUploader;
+import ahgpoug.qrreader.asyncTasks.FileUploader;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
+import ahgpoug.qrreader.interfaces.responses.UploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.RealPathUtil;
 
-public class SelectorActivity extends AppCompatActivity implements OnStartDragListener{
+public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, UploaderResponse{
     private static final int PICK_IMAGE_REQUEST = 10;
     private static final int CAMERA_REQUEST = 11;
     private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
@@ -52,7 +48,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     private static ArrayList<Photo> photoArrayList = new ArrayList<>();
     private ItemTouchHelper mItemTouchHelper;
     private static String id;
-    private FloatingActionsMenu floatingActionsMenu;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,7 +62,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     @Override
     protected void onResume() {
         super.onResume();
-        floatingActionsMenu = (FloatingActionsMenu)findViewById(R.id.multiple_actions);
+        FloatingActionsMenu floatingActionsMenu = (FloatingActionsMenu)findViewById(R.id.multiple_actions);
         floatingActionsMenu.collapse();
     }
 
@@ -82,6 +77,15 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
         mItemTouchHelper.startDrag(viewHolder);
+        Log.e("MyTAG", task.getId());
+    }
+
+    @Override
+    public void processFinish(Integer output) {
+        if (output == 1) {
+            photoArrayList.clear();
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private void initViews(){
@@ -160,7 +164,11 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_send) {
-            new fileUploader(photoArrayList).execute();
+            if (photoArrayList.size() > 0) {
+                FileUploader uploader = new FileUploader(SelectorActivity.this, photoArrayList, task);
+                uploader.delegate = SelectorActivity.this;
+                uploader.execute();
+            }
         }
 
         return super.onOptionsItemSelected(item);

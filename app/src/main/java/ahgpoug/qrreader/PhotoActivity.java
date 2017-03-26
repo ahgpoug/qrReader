@@ -31,7 +31,7 @@ import com.karumi.dexter.Dexter;
 import java.io.File;
 import java.io.IOException;
 
-import ahgpoug.qrreader.interfaces.MySQLresponse;
+import ahgpoug.qrreader.interfaces.responses.MySQLresponse;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.permissions.PermissionsListener;
 import ahgpoug.qrreader.asyncTasks.MySQLreader;
@@ -151,7 +151,7 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
         PermissionsListener permissionsListener = new PermissionsListener(this);
 
         Dexter.withActivity(this)
-                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET)
+                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS)
                 .withListener(permissionsListener)
                 .check();
     }

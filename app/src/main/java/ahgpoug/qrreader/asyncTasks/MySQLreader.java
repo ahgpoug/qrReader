@@ -17,7 +17,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 
-import ahgpoug.qrreader.interfaces.MySQLresponse;
+import ahgpoug.qrreader.interfaces.responses.MySQLresponse;
 import ahgpoug.qrreader.objects.Task;
 
 public class MySQLreader extends AsyncTask<String, Void, Object>{
@@ -26,7 +26,6 @@ public class MySQLreader extends AsyncTask<String, Void, Object>{
     public MySQLresponse delegate = null;
 
     public MySQLreader(Context context){
-        super();
         this.context = context;
     }
 
@@ -64,7 +63,8 @@ public class MySQLreader extends AsyncTask<String, Void, Object>{
 
             in.close();
             if (buffer.size() > 0) {
-                task = new Task(buffer.get(0), buffer.get(1), buffer.get(2), buffer.get(3));
+                if (!buffer.get(0).equals("error"))
+                    task = new Task(buffer.get(0), buffer.get(1), buffer.get(2), buffer.get(3));
             }
             return task;
         } catch(Exception e){

@@ -1,4 +1,4 @@
-package ahgpoug.qrreader.interfaces;
+package ahgpoug.qrreader.interfaces.responses;
 
 import ahgpoug.qrreader.objects.Task;
 
