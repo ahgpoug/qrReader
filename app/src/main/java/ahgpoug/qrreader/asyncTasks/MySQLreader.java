@@ -43,7 +43,7 @@ public class MySQLreader extends AsyncTask<String, Void, Object>{
     protected Object doInBackground(String... params) {
         try{
             Task task = null;
-            String link = "http://ahgpoug.xyz/tasks.php?id=" + params[0];
+            String link = "http://ahgpoug.xyz/qrreader/getTaskById.php?id=" + params[0];
 
             URL url = new URL(link);
             HttpClient client = new DefaultHttpClient();
