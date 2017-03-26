@@ -10,6 +10,7 @@ import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.FileMetadata;
+import com.dropbox.core.v2.files.ListFolderErrorException;
 import com.dropbox.core.v2.files.Metadata;
 
 import java.io.File;
@@ -61,8 +62,7 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
         DbxClientV2 client = new DbxClientV2(config, ACCESS_TOKEN);
         int counter = 1;
         String directory = String.format("/%s/%s/%s/", task.getGroupName(), task.getTaskName(), userName);
-        if (clearActiveDirectory(client, directory) == 0)
-            return 0;
+        clearActiveDirectory(client, directory);
         for (Photo photo : photos) {
             File imageFile = new File(photo.getUri().getPath());
             try {
@@ -99,15 +99,13 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
         delegate.processFinish(result);
     }
 
-    private Integer clearActiveDirectory(DbxClientV2 client, String path){
+    private void clearActiveDirectory(DbxClientV2 client, String path){
         try {
             List<Metadata> result = client.files().listFolder(path).getEntries();
             for (Metadata entry : result)
                 client.files().delete(entry.getPathDisplay());
         } catch (DbxException e) {
             e.printStackTrace();
-            return 0;
         }
-        return 1;
     }
 }
