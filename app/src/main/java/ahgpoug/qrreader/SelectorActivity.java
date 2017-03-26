@@ -24,8 +24,9 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.dropbox.core.DbxApiException;
+import com.dropbox.core.DbxException;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
-import com.google.gson.Gson;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
+import ahgpoug.qrreader.asyncTasks.fileUploader;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.objects.Photo;
@@ -100,9 +102,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(adapter);
         mItemTouchHelper = new ItemTouchHelper(callback);
         mItemTouchHelper.attachToRecyclerView(recyclerView);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
     private void initEvents(){
@@ -161,13 +160,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_send) {
-            Intent intent = new Intent(SelectorActivity.this, UploadActivity.class);
-            Gson gson = new Gson();
-            String jsonPhotos = gson.toJson(photoArrayList);
-
-            intent.putExtra("photos", jsonPhotos);
-            intent.putExtra("task", task);
-            startActivity(intent);
+            new fileUploader(photoArrayList).execute();
         }
 
         return super.onOptionsItemSelected(item);
