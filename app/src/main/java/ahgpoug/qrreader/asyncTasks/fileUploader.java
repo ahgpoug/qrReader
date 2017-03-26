@@ -10,12 +10,15 @@ import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.FileMetadata;
+import com.dropbox.core.v2.files.ListFolderResult;
+import com.dropbox.core.v2.files.Metadata;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import ahgpoug.qrreader.interfaces.responses.UploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
@@ -58,17 +61,16 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
         DbxClientV2 client = new DbxClientV2(config, ACCESS_TOKEN);
         int counter = 1;
+        String directory = String.format("/%s/%s/%s/", task.getGroupName(), task.getTaskName(), userName);
+        if (clearActiveDirectory(client, directory) == 0)
+            return 0;
         for (Photo photo : photos) {
             File imageFile = new File(photo.getUri().getPath());
             try {
                 InputStream in = new FileInputStream(imageFile);
-                String path = String.format("/%s/%s/%s/%s.%s", task.getGroupName(), task.getTaskName(), userName, String.valueOf(counter), photo.getName().substring(photo.getName().lastIndexOf(".") + 1, photo.getName().length()));
-                Log.e("MyTAG", path);
+                String path = String.format("%s%s.%s", directory,  String.valueOf(counter), photo.getName().substring(photo.getName().lastIndexOf(".") + 1, photo.getName().length()));
                 FileMetadata metadata = client.files().uploadBuilder(path).uploadAndFinish(in);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return 0;
-            } catch (DbxException e) {
+            } catch (IOException | DbxException e) {
                 e.printStackTrace();
                 return 0;
             }
@@ -98,4 +100,15 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
         delegate.processFinish(result);
     }
 
+    private Integer clearActiveDirectory(DbxClientV2 client, String path){
+        try {
+            List<Metadata> result = client.files().listFolder(path).getEntries();
+            for (Metadata entry : result)
+                client.files().delete(entry.getPathDisplay());
+        } catch (DbxException e) {
+            e.printStackTrace();
+            return 0;
+        }
+        return 1;
+    }
 }

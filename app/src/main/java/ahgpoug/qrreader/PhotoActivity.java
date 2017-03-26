@@ -112,9 +112,7 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
             public void surfaceCreated(SurfaceHolder holder) {
                 try {
                     cameraSource.start(cameraView.getHolder());
-                } catch (SecurityException e){
-                    e.printStackTrace();
-                } catch (IOException e) {
+                } catch (SecurityException | IOException e){
                     e.printStackTrace();
                 }
             }

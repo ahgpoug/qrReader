@@ -16,39 +16,19 @@ public class Task implements Serializable {
         this.expDate = expDate;
     }
 
-    public Task(){
-
-    }
-
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getTaskName() {
         return taskName;
     }
 
-    public void setTaskName(String taskName) {
-        this.taskName = taskName;
-    }
-
     public String getGroupName() {
         return groupName;
     }
 
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
-    }
-
     public String getExpDate() {
         return expDate;
-    }
-
-    public void setExpDate(String expDate) {
-        this.expDate = expDate;
     }
 }

@@ -43,7 +43,7 @@ public class MySQLreader extends AsyncTask<String, Void, Object>{
     @Override
     protected Object doInBackground(String... params) {
         try{
-            Task task = new Task();
+            Task task = null;
             String link = "http://ahgpoug.xyz/tasks.php?id=" + params[0];
 
             URL url = new URL(link);
@@ -57,7 +57,6 @@ public class MySQLreader extends AsyncTask<String, Void, Object>{
             String line="";
 
             while ((line = in.readLine()) != null) {
-                Log.e("MyTAG", line);
                 buffer.add(line);
             }
 
