@@ -56,8 +56,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         task = (Task) getIntent().getExtras().getSerializable("task");
         initViews();
         initEvents();
-
-        Util.getCurrentData(SelectorActivity.this);
     }
 
     @Override
@@ -162,8 +160,11 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
                 uploader.delegate = SelectorActivity.this;
                 uploader.execute();
             }
+        } else if (id == R.id.action_info) {
+            Intent intent = new Intent(SelectorActivity.this, TaskActivity.class);
+            intent.putExtra("task", task);
+            startActivity(intent);
         }
-
         return super.onOptionsItemSelected(item);
     }
 
