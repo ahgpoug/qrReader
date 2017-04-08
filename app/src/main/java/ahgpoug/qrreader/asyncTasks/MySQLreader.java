@@ -74,7 +74,7 @@ public class MySQLreader extends AsyncTask<String, Void, Object>{
     @Override
     protected void onPostExecute(Object result) {
         Task task = (Task) result;
-        delegate.processFinish(task);
+        delegate.onMySQLresponseComplete(task);
         loadingDialog.dismiss();
     }
 }

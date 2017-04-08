@@ -2,6 +2,7 @@ package ahgpoug.qrreader;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -19,7 +20,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 
 import java.io.File;
@@ -74,7 +74,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     @Override
-    public void processFinish(Integer output) {
+    public void onUploadFinish(Integer output) {
         if (output == 1) {
             photoArrayList.clear();
             adapter.notifyDataSetChanged();
@@ -106,10 +106,10 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         action_camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/photos");
+                File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/qrReader Photos");
                 if (!path.exists())
                     path.mkdirs();
-                id = new SimpleDateFormat("HHmmss").format(new Date());
+                id = new SimpleDateFormat("MMddHHmmssSSS").format(new Date());
                 File image = new File(path, "photo_" + id + ".jpg");
                 Uri imageUri = FileProvider.getUriForFile(SelectorActivity.this, CAPTURE_IMAGE_FILE_PROVIDER, image);
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -140,9 +140,9 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
-            new loadFromCamera().execute(data);
+            new loadFromGallery().execute(data);
         } else if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            new loadFromGallery().execute();
+            new loadFromCamera().execute();
         }
     }
 
@@ -183,7 +183,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         floatingActionsMenu.collapse();
     }
 
-    private class loadFromGallery extends AsyncTask<Void, Void, Void> {
+    private class loadFromCamera extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -191,10 +191,12 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
 
         @Override
         protected Void doInBackground(Void... params) {
-            File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/photos");
+            File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/qrReader Photos");
             if (!path.exists())
                 path.mkdirs();
             File imageFile = new File(path, "photo_" + id + ".jpg");
+
+            MediaScannerConnection.scanFile(SelectorActivity.this, new String[]{imageFile.getPath()}, null, null);
 
             photoArrayList.add(new Photo(Uri.fromFile(imageFile), imageFile.getName(), new Date(path.lastModified())));
             return null;
@@ -208,7 +210,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         }
     }
 
-    private class loadFromCamera extends AsyncTask<Intent, Void, Void> {
+    private class loadFromGallery extends AsyncTask<Intent, Void, Void> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();

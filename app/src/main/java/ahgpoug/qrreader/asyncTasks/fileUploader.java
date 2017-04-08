@@ -10,7 +10,6 @@ import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.FileMetadata;
-import com.dropbox.core.v2.files.ListFolderErrorException;
 import com.dropbox.core.v2.files.Metadata;
 
 import java.io.File;
@@ -96,7 +95,7 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
             Toast.makeText(context, "Успешно загружено " + String.valueOf(photos.size()) + " файлов", Toast.LENGTH_SHORT).show();
 
 
-        delegate.processFinish(result);
+        delegate.onUploadFinish(result);
     }
 
     private void clearActiveDirectory(DbxClientV2 client, String path){

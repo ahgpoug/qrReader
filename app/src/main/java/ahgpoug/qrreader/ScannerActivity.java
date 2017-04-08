@@ -36,7 +36,7 @@ import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.permissions.PermissionsListener;
 import ahgpoug.qrreader.util.RealPathUtil;
 
-public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
+public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
     private static final int PICK_IMAGE_REQUEST = 10;
 
     private SurfaceView cameraView;
@@ -64,13 +64,13 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
     }
 
     @Override
-    public void processFinish(Task task) {
+    public void onMySQLresponseComplete(Task task) {
         if (task == null){
-            Toast.makeText(PhotoActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ScannerActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
             initViews();
             initEvents();
         } else {
-            Intent intent = new Intent(PhotoActivity.this, SelectorActivity.class);
+            Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
             intent.putExtra("task", task);
             startActivity(intent);
         }
@@ -78,7 +78,7 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
     }
 
     private void initViews(){
-        setContentView(R.layout.activity_photo);
+        setContentView(R.layout.activity_scanner);
 
         galleryFab = (FloatingActionButton)findViewById(R.id.readFromGalleryFAB);
         cameraView = (SurfaceView)findViewById(R.id.camera_view);
@@ -178,7 +178,7 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        PhotoActivity.this.finishAffinity();
+                        ScannerActivity.this.finishAffinity();
                     }
                 })
                 .show();
@@ -209,9 +209,9 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
         String path = null;
 
         if (Build.VERSION.SDK_INT < 19) {
-            path = RealPathUtil.getRealPathFromURI_API11to18(PhotoActivity.this, uri);
+            path = RealPathUtil.getRealPathFromURI_API11to18(ScannerActivity.this, uri);
         } else {
-            path = RealPathUtil.getRealPathFromURI_API19(PhotoActivity.this, uri);
+            path = RealPathUtil.getRealPathFromURI_API19(ScannerActivity.this, uri);
         }
         return path;
     }
@@ -220,8 +220,8 @@ public class PhotoActivity extends AppCompatActivity implements MySQLresponse{
         this.runOnUiThread(new Runnable() {
             public void run() {
                 cameraSource.release();
-                MySQLreader reader = new MySQLreader(PhotoActivity.this);
-                reader.delegate = PhotoActivity.this;
+                MySQLreader reader = new MySQLreader(ScannerActivity.this);
+                reader.delegate = ScannerActivity.this;
                 reader.execute(qrCode);
             }
         });

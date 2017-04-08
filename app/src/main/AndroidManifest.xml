@@ -20,7 +20,7 @@
         android:theme="@style/AppTheme"
         android:largeHeap="true">
         <activity
-            android:name=".PhotoActivity"
+            android:name=".ScannerActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.FullScreen"
             android:screenOrientation="portrait">
@@ -41,6 +41,7 @@
             android:name="android.support.v4.content.FileProvider"
             android:authorities="ahgpoug.qrreader.fileprovider"
             android:exported="false"
+            android:syncable="true"
             android:grantUriPermissions="true" >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
