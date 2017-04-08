@@ -3,10 +3,7 @@ package ahgpoug.qrreader.util;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.provider.ContactsContract;
-import android.util.Log;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -35,7 +35,6 @@ import ahgpoug.qrreader.interfaces.responses.UploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.RealPathUtil;
-import ahgpoug.qrreader.util.Util;
 
 public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, UploaderResponse{
     private static final int PICK_IMAGE_REQUEST = 10;

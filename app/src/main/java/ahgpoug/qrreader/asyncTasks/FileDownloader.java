@@ -3,30 +3,20 @@ package ahgpoug.qrreader.asyncTasks;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.files.FileMetadata;
-import com.dropbox.core.v2.files.Metadata;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import ahgpoug.qrreader.interfaces.responses.DownloaderResponse;
-import ahgpoug.qrreader.interfaces.responses.UploaderResponse;
-import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
-import ahgpoug.qrreader.util.Util;
 
 public class FileDownloader extends AsyncTask<Void, Integer, Integer> {
     private static final String ACCESS_TOKEN = "Gtb6zMf7DEIAAAAAAAAA-ZN-27BeAujsyRFO1b7RrDfVa_RJ5kNLADfZnt--Bz46";
@@ -58,7 +48,6 @@ public class FileDownloader extends AsyncTask<Void, Integer, Integer> {
 
     @Override
     protected Integer doInBackground(Void... params){
-        Log.e("MyTAG", "started");
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
         DbxClientV2 client = new DbxClientV2(config, ACCESS_TOKEN);
         String directory = "/Задания/";
