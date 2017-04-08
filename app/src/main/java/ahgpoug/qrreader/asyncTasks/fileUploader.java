@@ -2,7 +2,6 @@ package ahgpoug.qrreader.asyncTasks;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -42,7 +41,6 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
 
         userName = Util.getCurrentUsername(context);
 
-        Log.e("MyTAG", userName);
         progressDialog = new MaterialDialog.Builder(context)
                 .content("Загрузка...")
                 .progress(false, photos.size(), true)
@@ -67,7 +65,7 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
             try {
                 InputStream in = new FileInputStream(imageFile);
                 String path = String.format("%s%s.%s", directory,  String.valueOf(counter), photo.getName().substring(photo.getName().lastIndexOf(".") + 1, photo.getName().length()));
-                FileMetadata metadata = client.files().uploadBuilder(path).uploadAndFinish(in);
+                client.files().uploadBuilder(path).uploadAndFinish(in);
             } catch (IOException | DbxException e) {
                 e.printStackTrace();
                 return 0;
