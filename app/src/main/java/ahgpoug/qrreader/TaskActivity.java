@@ -79,6 +79,7 @@ public class TaskActivity extends AppCompatActivity implements DownloaderRespons
     @Override
     public void onDownloadFinish(File output) {
         swipeRefreshLayout.setRefreshing(false);
+        pdfView.setEnabled(true);
 
         if (output != null) {
             loadPDF(output);
@@ -114,6 +115,7 @@ public class TaskActivity extends AppCompatActivity implements DownloaderRespons
         downloadPDF(true);
         swipeRefreshLayout.post(new Runnable() {
             @Override public void run() {
+                pdfView.setEnabled(false);
                 swipeRefreshLayout.setRefreshing(true);
             }
         });
