@@ -37,6 +37,8 @@ public class FileDownloader extends AsyncTask<Void, Integer, Integer> {
         if (!isSwiped)
             loadingDialog = new MaterialDialog.Builder(context)
                     .content("Загрузка...")
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(false)
                     .cancelable(false)
                     .show();
     }

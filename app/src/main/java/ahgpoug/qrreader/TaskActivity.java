@@ -5,8 +5,10 @@ import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.github.barteksc.pdfviewer.PDFView;
+import com.github.barteksc.pdfviewer.listener.OnErrorListener;
 import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 
 import java.io.File;
@@ -20,6 +22,7 @@ public class TaskActivity extends AppCompatActivity implements DownloaderRespons
     private SwipeRefreshLayout swipeRefreshLayout;
     private Task task;
     private OnPageScrollListener onPageScrollListener;
+    private OnErrorListener onErrorListener;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,14 +50,28 @@ public class TaskActivity extends AppCompatActivity implements DownloaderRespons
             }
         };
 
+        onErrorListener = new OnErrorListener() {
+            @Override
+            public void onError(Throwable t) {
+                Toast.makeText(TaskActivity.this, "Ошибка загрузки", Toast.LENGTH_SHORT).show();
+                File file = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/downloads/" + task.getTaskName() + ".pdf");
+                if (file.exists())
+                    file.delete();
+                downloadPDF(false);
+            }
+        };
+
         swipeRefreshLayout.setEnabled(false);
     }
 
     private void checkPDF(){
         File file = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/downloads/" + task.getTaskName() + ".pdf");
-        if (file.exists())
-            loadPDF(file);
-        else {
+        if (file.exists()) {
+            if (Integer.parseInt(String.valueOf(file.length())) == 0)
+                downloadPDF(false);
+            else
+                loadPDF(file);
+        } else {
             downloadPDF(false);
         }
     }
@@ -88,6 +105,7 @@ public class TaskActivity extends AppCompatActivity implements DownloaderRespons
                 .password(null)
                 .scrollHandle(null)
                 .enableAntialiasing(true)
+                .onError(onErrorListener)
                 .load();
     }
 
