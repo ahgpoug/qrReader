@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 
@@ -29,23 +30,26 @@ import java.util.Date;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
 import ahgpoug.qrreader.asyncTasks.FileUploader;
+import ahgpoug.qrreader.asyncTasks.GetDate;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
+import ahgpoug.qrreader.interfaces.responses.DateResponse;
 import ahgpoug.qrreader.interfaces.responses.UploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.RealPathUtil;
 
-public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, UploaderResponse{
+public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, UploaderResponse, DateResponse{
     private static final int PICK_IMAGE_REQUEST = 10;
     private static final int CAMERA_REQUEST = 11;
     private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
 
     private static Task task;
-    private PhotoRecyclerAdapter adapter;
     private static ArrayList<Photo> photoArrayList = new ArrayList<>();
-    private ItemTouchHelper mItemTouchHelper;
     private static String id;
+
+    private PhotoRecyclerAdapter adapter;
+    private ItemTouchHelper mItemTouchHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -75,6 +79,23 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         if (output == 1) {
             photoArrayList.clear();
             adapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onDateResponseComplete(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date taskDate = dateFormat.parse(task.getExpDate());
+            if (date.after(taskDate)){
+                Toast.makeText(SelectorActivity.this, "Срок выполнения задания истек", Toast.LENGTH_SHORT).show();
+            } else {
+                FileUploader uploader = new FileUploader(SelectorActivity.this, photoArrayList, task);
+                uploader.delegate = SelectorActivity.this;
+                uploader.execute();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -134,6 +155,12 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         });
     }
 
+    private void checkDate(){
+        GetDate getDate = new GetDate(SelectorActivity.this);
+        getDate.delegate = SelectorActivity.this;
+        getDate.execute();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
@@ -155,9 +182,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         int id = item.getItemId();
         if (id == R.id.action_send) {
             if (photoArrayList.size() > 0) {
-                FileUploader uploader = new FileUploader(SelectorActivity.this, photoArrayList, task);
-                uploader.delegate = SelectorActivity.this;
-                uploader.execute();
+                checkDate();
             }
         } else if (id == R.id.action_info) {
             Intent intent = new Intent(SelectorActivity.this, TaskActivity.class);
