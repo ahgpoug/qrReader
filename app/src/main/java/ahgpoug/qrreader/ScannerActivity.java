@@ -217,7 +217,7 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse,
 
             try {
                 //Bitmap qrCode = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
-                Bitmap qrCode = Util.getThumbnail(ScannerActivity.this, mImageCaptureUri);
+                Bitmap qrCode = Util.Images.getThumbnail(ScannerActivity.this, mImageCaptureUri);
                 Frame myFrame = new Frame.Builder().setBitmap(qrCode).build();
 
                 SparseArray<Barcode> barcodes = barcodeDetector.detect(myFrame);
@@ -256,7 +256,7 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse,
     private void handleSignInResult(GoogleSignInResult result) {
         if (result.isSuccess()) {
             GoogleSignInAccount acct = result.getSignInAccount();
-            Util.setGoogleAccount(acct);
+            Util.Account.setGoogleAccount(acct);
             initViews();
             initEvents();
         } else {

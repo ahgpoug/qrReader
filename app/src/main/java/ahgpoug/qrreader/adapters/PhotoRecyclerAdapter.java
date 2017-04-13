@@ -27,6 +27,7 @@ import ahgpoug.qrreader.interfaces.ItemTouchHelperAdapter;
 import ahgpoug.qrreader.interfaces.ItemTouchHelperViewHolder;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.objects.Photo;
+import ahgpoug.qrreader.util.Util;
 
 public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdapter.ViewHolder> implements ItemTouchHelperAdapter {
 
@@ -82,7 +83,7 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
                     .into(new BitmapImageViewTarget(holder.image) {
                         @Override
                         protected void setResource(Bitmap resource) {
-                            resource = ahgpoug.qrreader.util.Util.cropBitmapCenter(resource);
+                            resource = Util.Images.cropBitmapCenter(resource);
                             super.setResource(resource);
                         }
                     });

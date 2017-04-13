@@ -17,76 +17,80 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Util {
-    private static GoogleSignInAccount account;
+    public static class Account{
+        private static GoogleSignInAccount account;
 
-    public static Bitmap cropBitmapCenter(Bitmap srcBmp){
-        Bitmap dstBmp;
-        if (srcBmp.getWidth() >= srcBmp.getHeight()){
-
-            dstBmp = Bitmap.createBitmap(
-                    srcBmp,
-                    srcBmp.getWidth()/2 - srcBmp.getHeight()/2,
-                    0,
-                    srcBmp.getHeight(),
-                    srcBmp.getHeight()
-            );
-
-        }else{
-
-            dstBmp = Bitmap.createBitmap(
-                    srcBmp,
-                    0,
-                    srcBmp.getHeight()/2 - srcBmp.getWidth()/2,
-                    srcBmp.getWidth(),
-                    srcBmp.getWidth()
-            );
+        public static String getCurrentUsername() {
+            return account.getDisplayName();
         }
 
-        return dstBmp;
+        public static void setGoogleAccount(GoogleSignInAccount acc){
+            account = acc;
+        }
     }
 
-    public static String getCurrentUsername() {
-        return account.getDisplayName();
-    }
+    public static class Images {
+        public static Bitmap getThumbnail(Context context, Uri uri) throws IOException {
+            int THUMBNAIL_SIZE = 100;
+            InputStream input = context.getContentResolver().openInputStream(uri);
 
-    public static void setGoogleAccount(GoogleSignInAccount acc){
-        account = acc;
-    }
+            BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();
+            onlyBoundsOptions.inJustDecodeBounds = true;
+            onlyBoundsOptions.inDither=true;
+            onlyBoundsOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;
+            BitmapFactory.decodeStream(input, null, onlyBoundsOptions);
+            input.close();
 
-    public static Bitmap getThumbnail(Context context, Uri uri) throws IOException {
-        int THUMBNAIL_SIZE = 100;
-        InputStream input = context.getContentResolver().openInputStream(uri);
+            if ((onlyBoundsOptions.outWidth == -1) || (onlyBoundsOptions.outHeight == -1)) {
+                return null;
+            }
 
-        BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();
-        onlyBoundsOptions.inJustDecodeBounds = true;
-        onlyBoundsOptions.inDither=true;
-        onlyBoundsOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;
-        BitmapFactory.decodeStream(input, null, onlyBoundsOptions);
-        input.close();
+            int originalSize = (onlyBoundsOptions.outHeight > onlyBoundsOptions.outWidth) ? onlyBoundsOptions.outHeight : onlyBoundsOptions.outWidth;
 
-        if ((onlyBoundsOptions.outWidth == -1) || (onlyBoundsOptions.outHeight == -1)) {
-            return null;
+            Log.e("MyTAG", String. valueOf(originalSize));
+
+            double ratio = (originalSize > THUMBNAIL_SIZE) ? (originalSize / THUMBNAIL_SIZE) : 1.0;
+
+            BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+            bitmapOptions.inSampleSize = getPowerOfTwoForSampleRatio(ratio);
+            bitmapOptions.inDither = true;
+            bitmapOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;
+            input = context.getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(input, null, bitmapOptions);
+            input.close();
+            return bitmap;
         }
 
-        int originalSize = (onlyBoundsOptions.outHeight > onlyBoundsOptions.outWidth) ? onlyBoundsOptions.outHeight : onlyBoundsOptions.outWidth;
+        private static int getPowerOfTwoForSampleRatio(double ratio) {
+            int k = Integer.highestOneBit((int) Math.floor(ratio));
+            if (k == 0) return 1;
+            else return k;
+        }
 
-        Log.e("MyTAG", String. valueOf(originalSize));
+        public static Bitmap cropBitmapCenter(Bitmap srcBmp) {
+            Bitmap dstBmp;
+            if (srcBmp.getWidth() >= srcBmp.getHeight()) {
 
-        double ratio = (originalSize > THUMBNAIL_SIZE) ? (originalSize / THUMBNAIL_SIZE) : 1.0;
+                dstBmp = Bitmap.createBitmap(
+                        srcBmp,
+                        srcBmp.getWidth() / 2 - srcBmp.getHeight() / 2,
+                        0,
+                        srcBmp.getHeight(),
+                        srcBmp.getHeight()
+                );
 
-        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-        bitmapOptions.inSampleSize = getPowerOfTwoForSampleRatio(ratio);
-        bitmapOptions.inDither = true;
-        bitmapOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;
-        input = context.getContentResolver().openInputStream(uri);
-        Bitmap bitmap = BitmapFactory.decodeStream(input, null, bitmapOptions);
-        input.close();
-        return bitmap;
-    }
+            } else {
 
-    private static int getPowerOfTwoForSampleRatio(double ratio){
-        int k = Integer.highestOneBit((int)Math.floor(ratio));
-        if(k==0) return 1;
-        else return k;
+                dstBmp = Bitmap.createBitmap(
+                        srcBmp,
+                        0,
+                        srcBmp.getHeight() / 2 - srcBmp.getWidth() / 2,
+                        srcBmp.getWidth(),
+                        srcBmp.getWidth()
+                );
+            }
+
+            return dstBmp;
+        }
     }
 }

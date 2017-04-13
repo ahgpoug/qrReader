@@ -38,7 +38,7 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
         this.task = task;
         this.context = context;
 
-        userName = Util.getCurrentUsername();
+        userName = Util.Account.getCurrentUsername();
 
         progressDialog = new MaterialDialog.Builder(context)
                 .content("Загрузка...")
