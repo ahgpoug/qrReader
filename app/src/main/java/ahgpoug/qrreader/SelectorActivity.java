@@ -30,7 +30,7 @@ import java.util.Date;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
 import ahgpoug.qrreader.asyncTasks.FileUploader;
-import ahgpoug.qrreader.asyncTasks.GetDate;
+import ahgpoug.qrreader.asyncTasks.DateGetter;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.interfaces.responses.DateResponse;
@@ -156,9 +156,9 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     private void checkDate(){
-        GetDate getDate = new GetDate(SelectorActivity.this);
-        getDate.delegate = SelectorActivity.this;
-        getDate.execute();
+        DateGetter dateGetter = new DateGetter(SelectorActivity.this);
+        dateGetter.delegate = SelectorActivity.this;
+        dateGetter.execute();
     }
 
     @Override

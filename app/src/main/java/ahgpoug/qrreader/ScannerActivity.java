@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -94,6 +95,11 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse,
         barcodeDetector = new BarcodeDetector.Builder(this)
                 .setBarcodeFormats(Barcode.QR_CODE)
                 .build();
+
+        if(!barcodeDetector.isOperational()){
+            Toast.makeText(ScannerActivity.this, "Ошибка подключения детектора", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         cameraSource = new CameraSource
                 .Builder(this, barcodeDetector)
@@ -210,13 +216,16 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse,
             Uri mImageCaptureUri = Uri.fromFile(new File(uriToFilename(uri)));
 
             try {
-                Bitmap qrCode = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
+                //Bitmap qrCode = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
+                Bitmap qrCode = Util.getThumbnail(ScannerActivity.this, mImageCaptureUri);
                 Frame myFrame = new Frame.Builder().setBitmap(qrCode).build();
 
                 SparseArray<Barcode> barcodes = barcodeDetector.detect(myFrame);
 
                 if(barcodes.size() != 0) {
                     checkQrCode(barcodes.valueAt(0).displayValue);
+                } else {
+                    Toast.makeText(ScannerActivity.this, "QR код не распознан", Toast.LENGTH_SHORT).show();
                 }
             } catch (IOException e){
                 e.printStackTrace();
@@ -234,7 +243,7 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse,
     }
 
     private String uriToFilename(Uri uri) {
-        String path = null;
+        String path;
 
         if (Build.VERSION.SDK_INT < 19) {
             path = RealPathUtil.getRealPathFromURI_API11to18(ScannerActivity.this, uri);

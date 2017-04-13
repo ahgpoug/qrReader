@@ -19,12 +19,12 @@ import java.util.Date;
 
 import ahgpoug.qrreader.interfaces.responses.DateResponse;
 
-public class GetDate extends AsyncTask<String, Void, Object> {
+public class DateGetter extends AsyncTask<String, Void, Object> {
     private Context context;
     private MaterialDialog loadingDialog;
     public DateResponse delegate = null;
 
-    public GetDate(Context context){
+    public DateGetter(Context context){
         this.context = context;
     }
 
