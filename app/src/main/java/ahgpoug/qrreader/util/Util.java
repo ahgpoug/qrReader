@@ -31,7 +31,7 @@ public class Util {
 
     public static class Images {
         public static Bitmap getThumbnail(Context context, Uri uri) throws IOException {
-            int THUMBNAIL_SIZE = 100;
+            int THUMBNAIL_SIZE = 250;
             InputStream input = context.getContentResolver().openInputStream(uri);
 
             BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();
