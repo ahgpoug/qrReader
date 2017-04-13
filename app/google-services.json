@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "252205746236",
+    "project_id": "qrreader-162614"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:252205746236:android:86b6501742c091fb",
+        "android_client_info": {
+          "package_name": "ahgpoug.qrreader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "252205746236-tjg61hanegrbvc3lfrqqnkm4k00mrkfh.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "252205746236-m5n2b9sa7it7tt8lgcoti5paa2o1pdc8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ahgpoug.qrreader",
+            "certificate_hash": "b4ceac02b8f8e4b15e018ef61a659abe1ca8ced8"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApwMs_apdzKfFsJp67tbSpPqBANLkGQFk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

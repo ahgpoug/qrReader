@@ -4,11 +4,16 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.util.Log;
+
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class Util {
+    private static GoogleSignInAccount account;
+
     public static Bitmap cropBitmapCenter(Bitmap srcBmp){
         Bitmap dstBmp;
         if (srcBmp.getWidth() >= srcBmp.getHeight()){
@@ -35,22 +40,11 @@ public class Util {
         return dstBmp;
     }
 
-    public static String getCurrentUsername(Context context) {
-        AccountManager manager = AccountManager.get(context);
-        Account[] accounts = manager.getAccountsByType("com.google");
-        List<String> possibleEmails = new LinkedList<>();
+    public static String getCurrentUsername() {
+        return account.getDisplayName();
+    }
 
-        for (Account account : accounts) {
-            possibleEmails.add(account.name);
-        }
-
-        if (!possibleEmails.isEmpty() && possibleEmails.get(0) != null) {
-            String email = possibleEmails.get(0);
-            String[] parts = email.split("@");
-
-            if (parts.length > 1)
-                return parts[0];
-        }
-        return null;
+    public static void setGoogleAccount(GoogleSignInAccount acc){
+        account = acc;
     }
 }

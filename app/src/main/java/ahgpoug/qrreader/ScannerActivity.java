@@ -20,6 +20,12 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Frame;
@@ -35,9 +41,11 @@ import ahgpoug.qrreader.interfaces.responses.MySQLresponse;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.permissions.PermissionsListener;
 import ahgpoug.qrreader.util.RealPathUtil;
+import ahgpoug.qrreader.util.Util;
 
-public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
+public class ScannerActivity extends AppCompatActivity implements MySQLresponse, GoogleApiClient.OnConnectionFailedListener{
     private static final int PICK_IMAGE_REQUEST = 10;
+    private static final int SIGN_IN_REQUEST = 11;
 
     private SurfaceView cameraView;
     private BarcodeDetector barcodeDetector;
@@ -155,10 +163,7 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
                 .withPermissions(Manifest.permission.CAMERA,
                         Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.INTERNET,
-                        Manifest.permission.GET_ACCOUNTS,
-                        Manifest.permission.READ_CONTACTS,
-                        Manifest.permission.WRITE_CONTACTS)
+                        Manifest.permission.INTERNET)
                 .withListener(permissionsListener)
                 .check();
     }
@@ -166,8 +171,22 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
     public void onPermissionsGranted() {
         permissionsGranted = true;
 
-        initViews();
-        initEvents();
+        signIn();
+    }
+
+    private void signIn(){
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestProfile()
+                .build();
+
+        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, SIGN_IN_REQUEST);
     }
 
     public void onPermissionsDenied() {
@@ -202,7 +221,16 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
             } catch (IOException e){
                 e.printStackTrace();
             }
+        } else if (requestCode == SIGN_IN_REQUEST) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result);
         }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(ScannerActivity.this, "Ошибка подключения", Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     private String uriToFilename(Uri uri) {
@@ -216,13 +244,30 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
         return path;
     }
 
+    private void handleSignInResult(GoogleSignInResult result) {
+        if (result.isSuccess()) {
+            GoogleSignInAccount acct = result.getSignInAccount();
+            Util.setGoogleAccount(acct);
+            initViews();
+            initEvents();
+        } else {
+            Toast.makeText(ScannerActivity.this, "Необходимой войти в аккаунт", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
+
     private void checkQrCode(final String qrCode){
         this.runOnUiThread(new Runnable() {
             public void run() {
-                cameraSource.release();
+                try {
+                    cameraSource.release();
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
                 MySQLreader reader = new MySQLreader(ScannerActivity.this);
                 reader.delegate = ScannerActivity.this;
                 reader.execute(qrCode);
+
             }
         });
     }

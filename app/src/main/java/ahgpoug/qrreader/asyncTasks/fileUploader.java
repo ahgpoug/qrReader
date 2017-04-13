@@ -8,7 +8,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.files.FileMetadata;
 import com.dropbox.core.v2.files.Metadata;
 
 import java.io.File;
@@ -39,7 +38,7 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
         this.task = task;
         this.context = context;
 
-        userName = Util.getCurrentUsername(context);
+        userName = Util.getCurrentUsername();
 
         progressDialog = new MaterialDialog.Builder(context)
                 .content("Загрузка...")
