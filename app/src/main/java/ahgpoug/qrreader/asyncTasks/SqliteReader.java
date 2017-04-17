@@ -75,11 +75,12 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
         File file = new File(path, "sqlite.db");
         removeExistingFile(file);
 
+        SQLiteDatabase db = null;
         try {
             OutputStream out = new FileOutputStream(file);
             client.files().download("/sqlite.db").download(out);
 
-            SQLiteDatabase db = SQLiteDatabase.openDatabase(file.getPath(), null, SQLiteDatabase.OPEN_READONLY);
+            db = SQLiteDatabase.openDatabase(file.getPath(), null, SQLiteDatabase.OPEN_READONLY);
 
             String query = String.format("SELECT * FROM assoc WHERE id = '%s'", id);
             Cursor cursor = db.rawQuery(query, null);
@@ -93,6 +94,8 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
         } catch (Exception e) {
             e.printStackTrace();
             return 0;
+        } finally {
+            db.close();
         }
 
         if (file.exists())

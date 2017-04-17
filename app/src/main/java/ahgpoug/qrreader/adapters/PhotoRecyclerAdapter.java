@@ -1,11 +1,14 @@
 package ahgpoug.qrreader.adapters;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -79,11 +82,13 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
             Glide.with(context)
                     .load(values.get(holder.getLayoutPosition()).getUri())
                     .asBitmap()
+                    .override(600, 600)
+                    .centerCrop()
                     .placeholder(R.drawable.placeholder)
                     .into(new BitmapImageViewTarget(holder.image) {
                         @Override
                         protected void setResource(Bitmap resource) {
-                            resource = Util.Images.cropBitmapCenter(resource);
+                            //resource = Util.Images.cropBitmapCenter(resource);
                             super.setResource(resource);
                         }
                     });

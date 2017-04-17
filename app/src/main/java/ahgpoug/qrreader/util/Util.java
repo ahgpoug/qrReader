@@ -4,12 +4,14 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 public class Util {
     public static class Account{
@@ -42,8 +44,6 @@ public class Util {
 
             int originalSize = (onlyBoundsOptions.outHeight > onlyBoundsOptions.outWidth) ? onlyBoundsOptions.outHeight : onlyBoundsOptions.outWidth;
 
-            Log.e("MyTAG", String. valueOf(originalSize));
-
             double ratio = (originalSize > THUMBNAIL_SIZE) ? (originalSize / THUMBNAIL_SIZE) : 1.0;
 
             BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
@@ -60,32 +60,6 @@ public class Util {
             int k = Integer.highestOneBit((int) Math.floor(ratio));
             if (k == 0) return 1;
             else return k;
-        }
-
-        public static Bitmap cropBitmapCenter(Bitmap srcBmp) {
-            Bitmap dstBmp;
-            if (srcBmp.getWidth() >= srcBmp.getHeight()) {
-
-                dstBmp = Bitmap.createBitmap(
-                        srcBmp,
-                        srcBmp.getWidth() / 2 - srcBmp.getHeight() / 2,
-                        0,
-                        srcBmp.getHeight(),
-                        srcBmp.getHeight()
-                );
-
-            } else {
-
-                dstBmp = Bitmap.createBitmap(
-                        srcBmp,
-                        0,
-                        srcBmp.getHeight() / 2 - srcBmp.getWidth() / 2,
-                        srcBmp.getWidth(),
-                        srcBmp.getWidth()
-                );
-            }
-
-            return dstBmp;
         }
     }
 }
