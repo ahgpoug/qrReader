@@ -12,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.vision.CameraSource;
@@ -89,9 +88,7 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
     }
 
     private void initEvents(){
-        galleryFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        galleryFab.setOnClickListener(v -> {
                 if (Build.VERSION.SDK_INT < 19) {
                     Intent intent = new Intent();
                     intent.setType("image/*");
@@ -103,7 +100,6 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
                     intent.setType("image/*");
                     startActivityForResult(intent, PICK_IMAGE_REQUEST);
                 }
-            }
         });
 
         cameraView.getHolder().addCallback(new SurfaceHolder.Callback() {
@@ -183,8 +179,7 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
     }
 
     private void checkQrCode(final String id, final String token){
-        this.runOnUiThread(new Runnable() {
-            public void run() {
+        this.runOnUiThread(() -> {
                 try {
                     cameraSource.release();
                 } catch (Exception e){
@@ -193,7 +188,6 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
                 SqliteReader reader = new SqliteReader(ScannerActivity.this, id, token);
                 reader.delegate = ScannerActivity.this;
                 reader.execute();
-            }
         });
     }
 }

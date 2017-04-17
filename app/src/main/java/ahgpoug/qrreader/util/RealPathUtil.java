@@ -14,13 +14,11 @@ public class RealPathUtil {
         String filePath = "";
         if (DocumentsContract.isDocumentUri(context, uri)) {
             String wholeID = DocumentsContract.getDocumentId(uri);
-            // Split at colon, use second item in the array
             String[] splits = wholeID.split(":");
             if (splits.length == 2) {
                 String id = splits[1];
 
                 String[] column = { MediaStore.Images.Media.DATA };
-                // where id is equal to
                 String sel = MediaStore.Images.Media._ID + "=?";
                 Cursor cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel, new String[] { id }, null);
                 int columnIndex = cursor.getColumnIndex(column[0]);
@@ -47,13 +45,5 @@ public class RealPathUtil {
             result = cursor.getString(column_index);
         }
         return result;
-    }
-
-    public static String getRealPathFromURI_BelowAPI11(Context context, Uri contentUri) {
-        String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
-        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
     }
 }

@@ -18,7 +18,6 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
@@ -124,9 +123,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
 
     private void initEvents(){
         final com.getbase.floatingactionbutton.FloatingActionButton action_camera = (com.getbase.floatingactionbutton.FloatingActionButton) findViewById(R.id.action_camera);
-        action_camera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        action_camera.setOnClickListener(v -> {
                 File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/qrReader Photos");
                 if (!path.exists())
                     path.mkdirs();
@@ -136,13 +133,10 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
                 startActivityForResult(intent, CAMERA_REQUEST);
-            }
         });
 
         final com.getbase.floatingactionbutton.FloatingActionButton action_gallery = (com.getbase.floatingactionbutton.FloatingActionButton) findViewById(R.id.action_gallery);
-        action_gallery.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        action_gallery.setOnClickListener(v -> {
                 if (Build.VERSION.SDK_INT < 19) {
                     Intent intent = new Intent();
                     intent.setType("image/*");
@@ -154,7 +148,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
                     intent.setType("image/*");
                     startActivityForResult(intent, PICK_IMAGE_REQUEST);
                 }
-            }
         });
     }
 

@@ -3,7 +3,6 @@ package ahgpoug.qrreader.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.support.annotation.NonNull;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
@@ -89,39 +87,27 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
                     });
             holder.name.setText(values.get(holder.getLayoutPosition()).getName());
             holder.modDate.setText(new SimpleDateFormat("MMM dd, HH:mm:ss").format(values.get(holder.getLayoutPosition()).getModDate()));
-            holder.image.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    new MaterialDialog.Builder(context)
-                            .title("Удаление")
-                            .content("Вы действительно хотите удалить данное изображение?")
-                            .positiveText(android.R.string.ok)
-                            .negativeText(android.R.string.no)
-                            .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                    values.remove(holder.getLayoutPosition());
-                                    notifyDataSetChanged();
-                                }
-                            })
-                            .onNegative(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .show();
-                    return false;
-                }
+            holder.image.setOnLongClickListener(v -> {
+                new MaterialDialog.Builder(context)
+                        .title("Удаление")
+                        .content("Вы действительно хотите удалить данное изображение?")
+                        .positiveText(android.R.string.ok)
+                        .negativeText(android.R.string.no)
+                        .onPositive((dialog, which) ->  {
+                                values.remove(holder.getLayoutPosition());
+                                notifyDataSetChanged();
+                        })
+                        .onNegative((dialog, which) -> {
+                                dialog.dismiss();
+                        })
+                        .show();
+                return false;
             });
-            holder.bottom.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
-                        dragStartListener.onStartDrag(holder);
-                    }
-                    return false;
+            holder.bottom.setOnTouchListener((v, event) -> {
+                if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                    dragStartListener.onStartDrag(holder);
                 }
+                return false;
             });
         }
         catch (Exception e) {
