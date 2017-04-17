@@ -14,10 +14,6 @@ import com.dropbox.core.v2.DbxClientV2;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 
 import ahgpoug.qrreader.interfaces.responses.SqliteResponse;
 import ahgpoug.qrreader.objects.Task;

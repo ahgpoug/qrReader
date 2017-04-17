@@ -1,14 +1,11 @@
 package ahgpoug.qrreader.adapters;
 
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,7 +27,6 @@ import ahgpoug.qrreader.interfaces.ItemTouchHelperAdapter;
 import ahgpoug.qrreader.interfaces.ItemTouchHelperViewHolder;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.objects.Photo;
-import ahgpoug.qrreader.util.Util;
 
 public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdapter.ViewHolder> implements ItemTouchHelperAdapter {
 

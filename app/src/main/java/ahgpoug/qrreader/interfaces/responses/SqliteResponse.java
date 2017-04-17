@@ -1,7 +1,5 @@
 package ahgpoug.qrreader.interfaces.responses;
 
-import java.io.File;
-
 import ahgpoug.qrreader.objects.Task;
 
 public interface SqliteResponse {

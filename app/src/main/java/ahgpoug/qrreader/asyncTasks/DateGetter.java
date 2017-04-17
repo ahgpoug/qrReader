@@ -5,17 +5,13 @@ import android.os.AsyncTask;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.commons.net.ntp.NTPUDPClient;
+import org.apache.commons.net.ntp.TimeInfo;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URL;
-import java.text.SimpleDateFormat;
+import java.net.InetAddress;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import ahgpoug.qrreader.interfaces.responses.DateResponse;
 
@@ -41,27 +37,19 @@ public class DateGetter extends AsyncTask<String, Void, Object> {
 
     @Override
     protected Object doInBackground(String... params) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = new Date();
 
         try{
-            String link = "http://ahgpoug.xyz/qrreader/getCurrentDate.php";
+            String timeServer = "0.pool.ntp.org";
 
-            URL url = new URL(link);
-            HttpClient client = new DefaultHttpClient();
-            HttpGet request = new HttpGet();
-            request.setURI(new URI(link));
-            HttpResponse response = client.execute(request);
-            BufferedReader in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+            NTPUDPClient timeClient = new NTPUDPClient();
+            InetAddress inetAddress = InetAddress.getByName(timeServer);
+            TimeInfo timeInfo = timeClient.getTime(inetAddress);
+            long time = timeInfo.getMessage().getReceiveTimeStamp().getTime();
 
-            String line="";
-
-            while ((line = in.readLine()) != null) {
-                date = dateFormat.parse(line);
-            }
-
-            in.close();
-
+            Calendar cal = new GregorianCalendar();
+            cal.setTimeInMillis(time);
+            date = cal.getTime();
         } catch(Exception e){
             e.printStackTrace();
         }
