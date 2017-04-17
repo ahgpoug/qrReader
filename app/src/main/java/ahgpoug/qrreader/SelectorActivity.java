@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
-import ahgpoug.qrreader.asyncTasks.FileUploader;
 import ahgpoug.qrreader.asyncTasks.DateGetter;
+import ahgpoug.qrreader.asyncTasks.FileUploader;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.interfaces.responses.DateResponse;

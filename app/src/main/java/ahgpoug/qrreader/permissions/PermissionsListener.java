@@ -7,12 +7,12 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
 import java.util.List;
 
-import ahgpoug.qrreader.ScannerActivity;
+import ahgpoug.qrreader.SplashActivity;
 
 public class PermissionsListener implements MultiplePermissionsListener {
-    private final ScannerActivity activity;
+    private final SplashActivity activity;
 
-    public PermissionsListener(ScannerActivity activity) {
+    public PermissionsListener(SplashActivity activity) {
         this.activity = activity;
     }
 
