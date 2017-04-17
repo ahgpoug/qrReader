@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -24,13 +25,13 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 import java.io.File;
 import java.io.IOException;
 
-import ahgpoug.qrreader.asyncTasks.MySQLreader;
-import ahgpoug.qrreader.interfaces.responses.MySQLresponse;
+import ahgpoug.qrreader.asyncTasks.SqliteReader;
+import ahgpoug.qrreader.interfaces.responses.SqliteResponse;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.RealPathUtil;
 import ahgpoug.qrreader.util.Util;
 
-public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
+public class ScannerActivity extends AppCompatActivity implements SqliteResponse{
     private static final int PICK_IMAGE_REQUEST = 10;
 
     private SurfaceView cameraView;
@@ -53,13 +54,14 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
     }
 
     @Override
-    public void onMySQLresponseComplete(Task task) {
+    public void onSqliteResponseComplete(Task task, String token) {
         if (task == null){
             Toast.makeText(ScannerActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
             initViews();
             initEvents();
         } else {
             Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
+            intent.putExtra("token", token);
             intent.putExtra("task", task);
             startActivity(intent);
         }
@@ -135,7 +137,10 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
                 final SparseArray<Barcode> barcodes = detections.getDetectedItems();
 
                 if (barcodes.size() != 0) {
-                    checkQrCode(barcodes.valueAt(0).displayValue);
+                    String[] parts = barcodes.valueAt(0).displayValue.split("\\....");
+
+                    if (parts.length > 1)
+                        checkQrCode(parts[0], parts[1]);
                 }
             }
         });
@@ -148,14 +153,18 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
             Uri mImageCaptureUri = Uri.fromFile(new File(uriToFilename(uri)));
 
             try {
-                //Bitmap qrCode = MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageCaptureUri);
                 Bitmap qrCode = Util.Images.getThumbnail(ScannerActivity.this, mImageCaptureUri);
                 Frame myFrame = new Frame.Builder().setBitmap(qrCode).build();
 
                 SparseArray<Barcode> barcodes = barcodeDetector.detect(myFrame);
 
                 if (barcodes.size() != 0) {
-                    checkQrCode(barcodes.valueAt(0).displayValue);
+                    String[] parts = barcodes.valueAt(0).displayValue.split("....");
+
+                    if (parts.length > 2)
+                        checkQrCode(parts[0], parts[1]);
+                    else
+                        Toast.makeText(ScannerActivity.this, "QR код не распознан", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(ScannerActivity.this, "QR код не распознан", Toast.LENGTH_SHORT).show();
                 }
@@ -176,7 +185,7 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
         return path;
     }
 
-    private void checkQrCode(final String qrCode){
+    private void checkQrCode(final String id, final String token){
         this.runOnUiThread(new Runnable() {
             public void run() {
                 try {
@@ -184,10 +193,9 @@ public class ScannerActivity extends AppCompatActivity implements MySQLresponse{
                 } catch (Exception e){
                     e.printStackTrace();
                 }
-                MySQLreader reader = new MySQLreader(ScannerActivity.this);
+                SqliteReader reader = new SqliteReader(ScannerActivity.this, id, token);
                 reader.delegate = ScannerActivity.this;
-                reader.execute(qrCode);
-
+                reader.execute();
             }
         });
     }

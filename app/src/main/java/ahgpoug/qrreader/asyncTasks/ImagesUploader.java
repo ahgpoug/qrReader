@@ -17,26 +17,27 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import ahgpoug.qrreader.interfaces.responses.UploaderResponse;
+import ahgpoug.qrreader.interfaces.responses.ImagesUploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.Util;
 
-public class FileUploader extends AsyncTask<Void, Integer, Integer> {
-    private static final String ACCESS_TOKEN = "Gtb6zMf7DEIAAAAAAAAA-ZN-27BeAujsyRFO1b7RrDfVa_RJ5kNLADfZnt--Bz46";
-    public UploaderResponse delegate = null;
+public class ImagesUploader extends AsyncTask<Void, Integer, Integer> {
+    public ImagesUploaderResponse delegate = null;
 
     private ArrayList<Photo> photos = new ArrayList<>();
     private Task task;
     private Context context;
     private String userName;
+    private String token;
 
     private MaterialDialog progressDialog;
 
-    public FileUploader(Context context, ArrayList<Photo> photos, Task task){
+    public ImagesUploader(Context context, ArrayList<Photo> photos, Task task, String token){
         this.photos = photos;
         this.task = task;
         this.context = context;
+        this.token = token;
 
         userName = Util.Account.getCurrentUsername();
 
@@ -55,7 +56,7 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
     @Override
     protected Integer doInBackground(Void... params){
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
-        DbxClientV2 client = new DbxClientV2(config, ACCESS_TOKEN);
+        DbxClientV2 client = new DbxClientV2(config, token);
         int counter = 1;
         String directory = String.format("/%s/%s/%s/", task.getGroupName(), task.getTaskName(), userName);
         clearActiveDirectory(client, directory);
@@ -92,7 +93,7 @@ public class FileUploader extends AsyncTask<Void, Integer, Integer> {
             Toast.makeText(context, "Успешно загружено " + String.valueOf(photos.size()) + " файлов", Toast.LENGTH_SHORT).show();
 
 
-        delegate.onUploadFinish(result);
+        delegate.onImageUploadFinish(result);
     }
 
     private void clearActiveDirectory(DbxClientV2 client, String path){

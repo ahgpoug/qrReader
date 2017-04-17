@@ -13,14 +13,15 @@ import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 
 import java.io.File;
 
-import ahgpoug.qrreader.asyncTasks.FileDownloader;
-import ahgpoug.qrreader.interfaces.responses.DownloaderResponse;
+import ahgpoug.qrreader.asyncTasks.TaskFileDownloader;
+import ahgpoug.qrreader.interfaces.responses.TaskFileDownloaderResponse;
 import ahgpoug.qrreader.objects.Task;
 
-public class TaskActivity extends AppCompatActivity implements DownloaderResponse, SwipeRefreshLayout.OnRefreshListener {
+public class TaskActivity extends AppCompatActivity implements TaskFileDownloaderResponse, SwipeRefreshLayout.OnRefreshListener {
     private PDFView pdfView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private Task task;
+    private String token;
     private OnPageScrollListener onPageScrollListener;
     private OnErrorListener onErrorListener;
 
@@ -29,6 +30,7 @@ public class TaskActivity extends AppCompatActivity implements DownloaderRespons
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task);
         task = (Task) getIntent().getExtras().getSerializable("task");
+        token = getIntent().getExtras().getString("token");
 
         initViews();
         checkPDF();
@@ -77,7 +79,7 @@ public class TaskActivity extends AppCompatActivity implements DownloaderRespons
     }
 
     @Override
-    public void onDownloadFinish(File output) {
+    public void onTaskFileDownloadFinish(File output) {
         swipeRefreshLayout.setRefreshing(false);
         pdfView.setEnabled(true);
 
@@ -89,9 +91,9 @@ public class TaskActivity extends AppCompatActivity implements DownloaderRespons
     }
 
     private void downloadPDF(boolean isSwiped){
-        FileDownloader fileDownloader = new FileDownloader(TaskActivity.this, task, isSwiped);
-        fileDownloader.delegate = TaskActivity.this;
-        fileDownloader.execute();
+        TaskFileDownloader taskFileDownloader = new TaskFileDownloader(TaskActivity.this, task, token, isSwiped);
+        taskFileDownloader.delegate = TaskActivity.this;
+        taskFileDownloader.execute();
     }
 
 
