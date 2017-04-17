@@ -88,7 +88,6 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
                     .into(new BitmapImageViewTarget(holder.image) {
                         @Override
                         protected void setResource(Bitmap resource) {
-                            //resource = Util.Images.cropBitmapCenter(resource);
                             super.setResource(resource);
                         }
                     });
