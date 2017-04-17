@@ -38,12 +38,12 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
         this.token = token;
         this.id = id;
 
-        /*loadingDialog = new MaterialDialog.Builder(context)
+        loadingDialog = new MaterialDialog.Builder(context)
                 .content("Загрузка...")
                 .progress(true, 0)
                 .progressIndeterminateStyle(false)
                 .cancelable(false)
-                .show();*/
+                .show();
     }
 
     @Override
@@ -104,7 +104,7 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
     @Override
     protected void onPostExecute(Integer result) {
         super.onPostExecute(result);
-        //loadingDialog.dismiss();
+        loadingDialog.dismiss();
 
         if (result == 0)
             Toast.makeText(context, "Ошибка", Toast.LENGTH_SHORT).show();

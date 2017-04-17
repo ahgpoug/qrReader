@@ -159,12 +159,10 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
                 SparseArray<Barcode> barcodes = barcodeDetector.detect(myFrame);
 
                 if (barcodes.size() != 0) {
-                    String[] parts = barcodes.valueAt(0).displayValue.split("....");
+                    String[] parts = barcodes.valueAt(0).displayValue.split("\\....");
 
-                    if (parts.length > 2)
+                    if (parts.length > 1)
                         checkQrCode(parts[0], parts[1]);
-                    else
-                        Toast.makeText(ScannerActivity.this, "QR код не распознан", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(ScannerActivity.this, "QR код не распознан", Toast.LENGTH_SHORT).show();
                 }
