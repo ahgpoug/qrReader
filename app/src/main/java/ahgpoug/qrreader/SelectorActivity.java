@@ -18,7 +18,6 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
@@ -30,16 +29,16 @@ import java.util.Date;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
 import ahgpoug.qrreader.asyncTasks.DateGetter;
-import ahgpoug.qrreader.asyncTasks.FileUploader;
+import ahgpoug.qrreader.asyncTasks.ImagesUploader;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.interfaces.responses.DateResponse;
-import ahgpoug.qrreader.interfaces.responses.UploaderResponse;
+import ahgpoug.qrreader.interfaces.responses.ImagesUploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.RealPathUtil;
 
-public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, UploaderResponse, DateResponse{
+public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, ImagesUploaderResponse, DateResponse{
     private static final int PICK_IMAGE_REQUEST = 10;
     private static final int CAMERA_REQUEST = 11;
     private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
@@ -47,6 +46,8 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     private static Task task;
     private static ArrayList<Photo> photoArrayList = new ArrayList<>();
     private static String id;
+
+    private String token;
 
     private PhotoRecyclerAdapter adapter;
     private ItemTouchHelper mItemTouchHelper;
@@ -57,6 +58,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
 
         setContentView(R.layout.activity_selector);
         task = (Task) getIntent().getExtras().getSerializable("task");
+        token = getIntent().getExtras().getString("token");
         initViews();
         initEvents();
     }
@@ -75,7 +77,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     @Override
-    public void onUploadFinish(Integer output) {
+    public void onImageUploadFinish(Integer output) {
         if (output == 1) {
             photoArrayList.clear();
             adapter.notifyDataSetChanged();
@@ -90,7 +92,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
             if (date.after(taskDate)){
                 Toast.makeText(SelectorActivity.this, "Срок выполнения задания истек", Toast.LENGTH_SHORT).show();
             } else {
-                FileUploader uploader = new FileUploader(SelectorActivity.this, photoArrayList, task);
+                ImagesUploader uploader = new ImagesUploader(SelectorActivity.this, photoArrayList, task, token);
                 uploader.delegate = SelectorActivity.this;
                 uploader.execute();
             }
@@ -121,9 +123,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
 
     private void initEvents(){
         final com.getbase.floatingactionbutton.FloatingActionButton action_camera = (com.getbase.floatingactionbutton.FloatingActionButton) findViewById(R.id.action_camera);
-        action_camera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        action_camera.setOnClickListener(v -> {
                 File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/qrReader Photos");
                 if (!path.exists())
                     path.mkdirs();
@@ -133,13 +133,10 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
                 startActivityForResult(intent, CAMERA_REQUEST);
-            }
         });
 
         final com.getbase.floatingactionbutton.FloatingActionButton action_gallery = (com.getbase.floatingactionbutton.FloatingActionButton) findViewById(R.id.action_gallery);
-        action_gallery.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        action_gallery.setOnClickListener(v -> {
                 if (Build.VERSION.SDK_INT < 19) {
                     Intent intent = new Intent();
                     intent.setType("image/*");
@@ -151,7 +148,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
                     intent.setType("image/*");
                     startActivityForResult(intent, PICK_IMAGE_REQUEST);
                 }
-            }
         });
     }
 
@@ -187,6 +183,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         } else if (id == R.id.action_info) {
             Intent intent = new Intent(SelectorActivity.this, TaskActivity.class);
             intent.putExtra("task", task);
+            intent.putExtra("token", token);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);

@@ -15,24 +15,25 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import ahgpoug.qrreader.interfaces.responses.DownloaderResponse;
+import ahgpoug.qrreader.interfaces.responses.TaskFileDownloaderResponse;
 import ahgpoug.qrreader.objects.Task;
 
-public class FileDownloader extends AsyncTask<Void, Integer, Integer> {
-    private static final String ACCESS_TOKEN = "Gtb6zMf7DEIAAAAAAAAA-ZN-27BeAujsyRFO1b7RrDfVa_RJ5kNLADfZnt--Bz46";
-    public DownloaderResponse delegate = null;
+public class TaskFileDownloader extends AsyncTask<Void, Integer, Integer> {
+    public TaskFileDownloaderResponse delegate = null;
 
     private Task task;
     private Context context;
     private File pdfFile;
     private boolean isSwiped;
+    private String token;
 
     private MaterialDialog loadingDialog;
 
-    public FileDownloader(Context context, Task task, boolean isSwiped){
+    public TaskFileDownloader(Context context, Task task, String token, boolean isSwiped){
         this.task = task;
         this.context = context;
         this.isSwiped = isSwiped;
+        this.token = token;
 
         if (!isSwiped)
             loadingDialog = new MaterialDialog.Builder(context)
@@ -51,7 +52,7 @@ public class FileDownloader extends AsyncTask<Void, Integer, Integer> {
     @Override
     protected Integer doInBackground(Void... params){
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
-        DbxClientV2 client = new DbxClientV2(config, ACCESS_TOKEN);
+        DbxClientV2 client = new DbxClientV2(config, token);
         String directory = "/Задания/";
 
         File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/downloads");
@@ -91,7 +92,7 @@ public class FileDownloader extends AsyncTask<Void, Integer, Integer> {
             Toast.makeText(context, "Успешно загружено", Toast.LENGTH_SHORT).show();
 
 
-        delegate.onDownloadFinish(pdfFile);
+        delegate.onTaskFileDownloadFinish(pdfFile);
     }
 
     private void removeExistingFile(File file){

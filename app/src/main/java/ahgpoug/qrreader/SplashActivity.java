@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -30,6 +29,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SplashActivity.this.setFinishOnTouchOutside(false);
 
         if (hasConnection())
             initPermissions();
@@ -82,11 +83,8 @@ public class SplashActivity extends AppCompatActivity implements GoogleApiClient
                 .title("Ошибка")
                 .content("Для работы приложения необходимо принять все разрешения")
                 .positiveText(android.R.string.ok)
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                .onPositive((dialog, which) -> {
                         SplashActivity.this.finishAffinity();
-                    }
                 })
                 .show();
     }

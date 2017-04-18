@@ -9,13 +9,17 @@ android {
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -25,16 +29,17 @@ dependencies {
     compile('com.android.support:support-v13:25.3.0')
     compile('com.android.support:cardview-v7:25.3.0')
     compile('com.android.support:recyclerview-v7:25.3.0')
-    compile 'com.google.android.gms:play-services-vision:10.2.1'
-    compile 'com.google.android.gms:play-services-auth:10.2.1'
+    compile 'com.google.android.gms:play-services-vision:10.2.1' //google mobile vision
+    compile 'com.google.android.gms:play-services-auth:10.2.1' //google auth
 
     compile 'com.karumi:dexter:4.0.0' //dexter permissions
     compile 'com.afollestad.material-dialogs:core:0.9.0.2'  //material dialogs
-    compile 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2' //apache http client
     compile 'com.getbase:floatingactionbutton:1.10.1' //floating action menu
     compile 'com.github.bumptech.glide:glide:3.7.0' //glide
     compile 'com.dropbox.core:dropbox-core-sdk:2.1.1' //dropbox sdk
     compile 'com.github.barteksc:android-pdf-viewer:2.5.0' //pdf viewer
+    compile 'commons-net:commons-net:3.6' //apache commons net
 }
 
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'me.tatarka.retrolambda'
