@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -58,7 +57,7 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
         DbxClientV2 client = new DbxClientV2(config, token);
 
-        File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/temp");
+        File path = new File(context.getFilesDir(), "temp");
 
         if (!path.exists()) {
             if (!path.mkdirs()) {
