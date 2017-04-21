@@ -23,11 +23,15 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 import java.io.File;
 import java.io.IOException;
 
+import ahgpoug.qrreader.asyncTasks.AsyncTasks;
 import ahgpoug.qrreader.asyncTasks.SqliteReader;
 import ahgpoug.qrreader.interfaces.responses.SqliteResponse;
 import ahgpoug.qrreader.objects.Task;
-import ahgpoug.qrreader.util.RealPathUtil;
+import ahgpoug.qrreader.util.RealPath;
 import ahgpoug.qrreader.util.Util;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class ScannerActivity extends AppCompatActivity implements SqliteResponse{
     private static final int PICK_IMAGE_REQUEST = 10;
@@ -63,6 +67,19 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
             intent.putExtra("task", task);
             startActivity(intent);
         }
+    }
+
+    private void onSqliteComplete(Task task, String token){
+        Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
+        intent.putExtra("token", token);
+        intent.putExtra("task", task);
+        startActivity(intent);
+    }
+
+    private void onSqliteError(){
+        Toast.makeText(ScannerActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
+        initViews();
+        initEvents();
     }
 
     private void initViews(){
@@ -171,23 +188,18 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
         String path;
 
         if (Build.VERSION.SDK_INT < 19) {
-            path = RealPathUtil.getRealPathFromURI_API11to18(ScannerActivity.this, uri);
+            path = RealPath.getRealPathFromURI_API11to18(ScannerActivity.this, uri);
         } else {
-            path = RealPathUtil.getRealPathFromURI_API19(ScannerActivity.this, uri);
+            path = RealPath.getRealPathFromURI_API19(ScannerActivity.this, uri);
         }
         return path;
     }
 
     private void checkQrCode(final String id, final String token){
-        this.runOnUiThread(() -> {
-                try {
-                    cameraSource.release();
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-                SqliteReader reader = new SqliteReader(ScannerActivity.this, id, token);
-                reader.delegate = ScannerActivity.this;
-                reader.execute();
-        });
+        Observable.defer(() -> Observable.just(AsyncTasks.execSqliteReader(ScannerActivity.this, id, token)))
+                .filter(result -> result != null)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> onSqliteComplete(result.getTask(), result.getToken()), e -> onSqliteError());
     }
 }
