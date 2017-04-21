@@ -12,6 +12,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -93,6 +96,16 @@ public class ScannerActivity extends AppCompatActivity {
                 .setRequestedPreviewSize(640, 480)
                 .setAutoFocusEnabled(true)
                 .build();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WindowManager.LayoutParams attributes = getWindow().getAttributes();
+            attributes.flags |= WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
+            getWindow().setAttributes(attributes);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) galleryFab.getLayoutParams();
+            params.bottomMargin = Util.getNavigationBarHeight(ScannerActivity.this) + 32;
+        }
     }
 
     private void initEvents(){
