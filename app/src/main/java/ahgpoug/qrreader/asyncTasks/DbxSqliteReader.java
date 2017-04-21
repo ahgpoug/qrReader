@@ -62,7 +62,8 @@ public class DbxSqliteReader {
             e.printStackTrace();
             return null;
         } finally {
-            db.close();
+            if (db != null)
+                db.close();
         }
 
         if (file.exists())
