@@ -13,6 +13,7 @@ import com.github.barteksc.pdfviewer.listener.OnErrorListener;
 import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import ahgpoug.qrreader.asyncTasks.DbxPDFDownloader;
 import ahgpoug.qrreader.objects.Task;
@@ -77,7 +78,7 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
-    private void onPDFdownloadComplete(File file){
+    private void onPDFdownloadComplete(File file, boolean isSwiped){
         swipeRefreshLayout.setRefreshing(false);
         pdfView.setEnabled(true);
 
@@ -87,12 +88,18 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
         if (file != null) {
             loadPDF(file);
         } else {
-            finish();
+            if (!isSwiped) {
+                Toast.makeText(TaskActivity.this, "Не удалось загрузить файл", Toast.LENGTH_SHORT).show();
+                finish();
+            } else
+                Toast.makeText(TaskActivity.this, "Не удалось обновить файл", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void downloadPDF(boolean isSwiped){
         if (!isSwiped){
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
             loadingDialog = Dialogs.getLoadingDialog(TaskActivity.this);
             loadingDialog.show();
         }
@@ -100,8 +107,9 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
         Observable.defer(() -> Observable.just(DbxPDFDownloader.execute(task, token)))
                 .filter(result -> result != null)
                 .subscribeOn(Schedulers.io())
+                .timeout(30, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(result -> onPDFdownloadComplete(result), e -> onPDFdownloadComplete(null));
+                .subscribe(result -> onPDFdownloadComplete(result, isSwiped), e -> onPDFdownloadComplete(null, isSwiped));
     }
 
 

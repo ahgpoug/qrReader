@@ -25,11 +25,12 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
-import ahgpoug.qrreader.asyncTasks.NTPDateGetter;
-import ahgpoug.qrreader.asyncTasks.ImagesLoader;
 import ahgpoug.qrreader.asyncTasks.DbxImagesUploader;
+import ahgpoug.qrreader.asyncTasks.ImagesLoader;
+import ahgpoug.qrreader.asyncTasks.NTPDateGetter;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.objects.Photo;
@@ -103,17 +104,20 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
             if (date.after(taskDate)){
                 Toast.makeText(SelectorActivity.this, "Срок выполнения задания истек", Toast.LENGTH_SHORT).show();
             } else if (photoArrayList.size() > 0) {
-                    loadingDialog = Dialogs.getProgressLoadingDialog(SelectorActivity.this, photoArrayList.size());
-                    loadingDialog.show();
+                if (loadingDialog != null && loadingDialog.isShowing())
+                    loadingDialog.dismiss();
+                loadingDialog = Dialogs.getProgressLoadingDialog(SelectorActivity.this, photoArrayList.size());
+                loadingDialog.show();
 
-                    Observable.defer(() -> Observable.just(photoArrayList))
-                            .flatMapIterable(list -> list)
-                            .filter(photo -> photo != null)
-                            .doOnSubscribe(photo -> DbxImagesUploader.clearActiveDirectory(task, token))
-                            .doOnNext(photo -> DbxImagesUploader.execute(task, photo, token))
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(result -> loadingDialog.incrementProgress(1), e -> onImagesUploadComplete(false), () -> onImagesUploadComplete(true));
+                Observable.defer(() -> Observable.just(photoArrayList))
+                        .flatMapIterable(list -> list)
+                        .filter(photo -> photo != null)
+                        .doOnSubscribe(photo -> DbxImagesUploader.clearActiveDirectory(task, token))
+                        .doOnNext(photo -> DbxImagesUploader.execute(task, photo, token))
+                        .subscribeOn(Schedulers.newThread())
+                        .timeout(30, TimeUnit.SECONDS)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(result -> loadingDialog.incrementProgress(1), e -> onImagesUploadComplete(false), () -> onImagesUploadComplete(true));
             }
         } catch (Exception e){
             e.printStackTrace();
@@ -171,6 +175,9 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     private void checkDate(){
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
         loadingDialog = Dialogs.getLoadingDialog(SelectorActivity.this);
             loadingDialog.show();
 
@@ -185,11 +192,13 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
             Observable.defer(() -> Observable.just(ImagesLoader.loadFromGallery(SelectorActivity.this, data, photoArrayList)))
                     .subscribeOn(Schedulers.io())
+                    .timeout(30, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(result -> setupRecyclerView(result), e -> e.printStackTrace());
         } else if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Observable.defer(() -> Observable.just(ImagesLoader.loadFromCamera(SelectorActivity.this, id, photoArrayList)))
                     .subscribeOn(Schedulers.io())
+                    .timeout(30, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(result -> setupRecyclerView(result), e -> e.printStackTrace());
         }

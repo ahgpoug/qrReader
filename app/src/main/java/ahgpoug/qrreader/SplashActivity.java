@@ -2,15 +2,11 @@ package ahgpoug.qrreader;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -22,7 +18,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.karumi.dexter.Dexter;
-import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import ahgpoug.qrreader.permissions.PermissionsListener;
 import ahgpoug.qrreader.util.Util;

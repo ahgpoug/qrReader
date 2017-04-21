@@ -13,7 +13,6 @@ import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -26,6 +25,7 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import ahgpoug.qrreader.asyncTasks.DbxSqliteReader;
 import ahgpoug.qrreader.objects.Task;
@@ -201,6 +201,8 @@ public class ScannerActivity extends AppCompatActivity {
 
     private void checkQrCode(final String id, final String token){
         this.runOnUiThread(() -> {
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
             loadingDialog = Dialogs.getLoadingDialog(ScannerActivity.this);
             loadingDialog.show();
 
@@ -213,6 +215,7 @@ public class ScannerActivity extends AppCompatActivity {
             Observable.defer(() -> Observable.just(DbxSqliteReader.execute(ScannerActivity.this, id, token)))
                     .filter(result -> result != null)
                     .subscribeOn(Schedulers.io())
+                    .timeout(30, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(result -> onSqliteTaskComplete(result.getTask(), result.getToken()), e -> onSqliteTaskError());
         });
