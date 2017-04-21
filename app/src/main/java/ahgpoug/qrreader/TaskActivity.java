@@ -7,23 +7,29 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.listener.OnErrorListener;
 import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
-import ahgpoug.qrreader.asyncTasks.TaskFileDownloader;
-import ahgpoug.qrreader.interfaces.responses.TaskFileDownloaderResponse;
+import ahgpoug.qrreader.asyncTasks.DbxPDFDownloader;
 import ahgpoug.qrreader.objects.Task;
+import ahgpoug.qrreader.util.Dialogs;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
-public class TaskActivity extends AppCompatActivity implements TaskFileDownloaderResponse, SwipeRefreshLayout.OnRefreshListener {
+public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     private PDFView pdfView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private Task task;
     private String token;
     private OnPageScrollListener onPageScrollListener;
     private OnErrorListener onErrorListener;
+    private MaterialDialog loadingDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,22 +78,38 @@ public class TaskActivity extends AppCompatActivity implements TaskFileDownloade
         }
     }
 
-    @Override
-    public void onTaskFileDownloadFinish(File output) {
+    private void onPDFdownloadComplete(File file, boolean isSwiped){
         swipeRefreshLayout.setRefreshing(false);
         pdfView.setEnabled(true);
 
-        if (output != null) {
-            loadPDF(output);
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
+        if (file != null) {
+            loadPDF(file);
         } else {
-            finish();
+            if (!isSwiped) {
+                Toast.makeText(TaskActivity.this, "Не удалось загрузить файл", Toast.LENGTH_SHORT).show();
+                finish();
+            } else
+                Toast.makeText(TaskActivity.this, "Не удалось обновить файл", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void downloadPDF(boolean isSwiped){
-        TaskFileDownloader taskFileDownloader = new TaskFileDownloader(TaskActivity.this, task, token, isSwiped);
-        taskFileDownloader.delegate = TaskActivity.this;
-        taskFileDownloader.execute();
+        if (!isSwiped){
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
+            loadingDialog = Dialogs.getLoadingDialog(TaskActivity.this);
+            loadingDialog.show();
+        }
+
+        Observable.defer(() -> Observable.just(DbxPDFDownloader.execute(task, token)))
+                .filter(result -> result != null)
+                .subscribeOn(Schedulers.io())
+                .timeout(30, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> onPDFdownloadComplete(result, isSwiped), e -> onPDFdownloadComplete(null, isSwiped));
     }
 
 

@@ -12,8 +12,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Frame;
@@ -22,20 +25,25 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
-import ahgpoug.qrreader.asyncTasks.SqliteReader;
-import ahgpoug.qrreader.interfaces.responses.SqliteResponse;
+import ahgpoug.qrreader.asyncTasks.DbxSqliteReader;
 import ahgpoug.qrreader.objects.Task;
-import ahgpoug.qrreader.util.RealPathUtil;
+import ahgpoug.qrreader.util.Dialogs;
+import ahgpoug.qrreader.util.RealPath;
 import ahgpoug.qrreader.util.Util;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
-public class ScannerActivity extends AppCompatActivity implements SqliteResponse{
+public class ScannerActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 10;
 
     private SurfaceView cameraView;
     private BarcodeDetector barcodeDetector;
     private CameraSource cameraSource;
     private FloatingActionButton galleryFab;
+    private MaterialDialog loadingDialog;
 
 
     @Override
@@ -51,18 +59,21 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
         initEvents();
     }
 
-    @Override
-    public void onSqliteResponseComplete(Task task, String token) {
-        if (task == null){
-            Toast.makeText(ScannerActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
-            initViews();
-            initEvents();
-        } else {
-            Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
-            intent.putExtra("token", token);
-            intent.putExtra("task", task);
-            startActivity(intent);
-        }
+    private void onSqliteTaskComplete(Task task, String token){
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+        Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
+        intent.putExtra("token", token);
+        intent.putExtra("task", task);
+        startActivity(intent);
+    }
+
+    private void onSqliteTaskError(){
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+        Toast.makeText(ScannerActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
+        initViews();
+        initEvents();
     }
 
     private void initViews(){
@@ -85,6 +96,16 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
                 .setRequestedPreviewSize(640, 480)
                 .setAutoFocusEnabled(true)
                 .build();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WindowManager.LayoutParams attributes = getWindow().getAttributes();
+            attributes.flags |= WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
+            getWindow().setAttributes(attributes);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) galleryFab.getLayoutParams();
+            params.bottomMargin = Util.getNavigationBarHeight(ScannerActivity.this) + 32;
+        }
     }
 
     private void initEvents(){
@@ -171,23 +192,32 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
         String path;
 
         if (Build.VERSION.SDK_INT < 19) {
-            path = RealPathUtil.getRealPathFromURI_API11to18(ScannerActivity.this, uri);
+            path = RealPath.getRealPathFromURI_API11to18(ScannerActivity.this, uri);
         } else {
-            path = RealPathUtil.getRealPathFromURI_API19(ScannerActivity.this, uri);
+            path = RealPath.getRealPathFromURI_API19(ScannerActivity.this, uri);
         }
         return path;
     }
 
     private void checkQrCode(final String id, final String token){
         this.runOnUiThread(() -> {
-                try {
-                    cameraSource.release();
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-                SqliteReader reader = new SqliteReader(ScannerActivity.this, id, token);
-                reader.delegate = ScannerActivity.this;
-                reader.execute();
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
+            loadingDialog = Dialogs.getLoadingDialog(ScannerActivity.this);
+            loadingDialog.show();
+
+            try {
+                cameraSource.release();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Observable.defer(() -> Observable.just(DbxSqliteReader.execute(ScannerActivity.this, id, token)))
+                    .filter(result -> result != null)
+                    .subscribeOn(Schedulers.io())
+                    .timeout(30, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(result -> onSqliteTaskComplete(result.getTask(), result.getToken()), e -> onSqliteTaskError());
         });
     }
 }

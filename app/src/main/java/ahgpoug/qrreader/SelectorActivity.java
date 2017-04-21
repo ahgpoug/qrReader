@@ -2,9 +2,7 @@ package ahgpoug.qrreader;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -20,25 +18,29 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
-import ahgpoug.qrreader.asyncTasks.DateGetter;
-import ahgpoug.qrreader.asyncTasks.ImagesUploader;
+import ahgpoug.qrreader.asyncTasks.DbxImagesUploader;
+import ahgpoug.qrreader.asyncTasks.ImagesLoader;
+import ahgpoug.qrreader.asyncTasks.NTPDateGetter;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
-import ahgpoug.qrreader.interfaces.responses.DateResponse;
-import ahgpoug.qrreader.interfaces.responses.ImagesUploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
-import ahgpoug.qrreader.util.RealPathUtil;
+import ahgpoug.qrreader.util.Dialogs;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
-public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, ImagesUploaderResponse, DateResponse{
+public class SelectorActivity extends AppCompatActivity implements OnStartDragListener{
     private static final int PICK_IMAGE_REQUEST = 10;
     private static final int CAMERA_REQUEST = 11;
     private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
@@ -51,6 +53,8 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
 
     private PhotoRecyclerAdapter adapter;
     private ItemTouchHelper mItemTouchHelper;
+
+    private MaterialDialog loadingDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -76,25 +80,44 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         mItemTouchHelper.startDrag(viewHolder);
     }
 
-    @Override
-    public void onImageUploadFinish(Integer output) {
-        if (output == 1) {
+    public void onImagesUploadComplete(boolean result){
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
+        if (result) {
+            Toast.makeText(SelectorActivity.this, "Успешно загружено " + String.valueOf(photoArrayList.size()) + " файлов", Toast.LENGTH_SHORT).show();
             photoArrayList.clear();
             adapter.notifyDataSetChanged();
+        } else {
+            Toast.makeText(SelectorActivity.this, "Ошибка загрузки", Toast.LENGTH_SHORT).show();
         }
     }
 
-    @Override
-    public void onDateResponseComplete(Date date) {
+
+    private void onDateReceived(Date date){
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
             Date taskDate = dateFormat.parse(task.getExpDate());
             if (date.after(taskDate)){
                 Toast.makeText(SelectorActivity.this, "Срок выполнения задания истек", Toast.LENGTH_SHORT).show();
-            } else {
-                ImagesUploader uploader = new ImagesUploader(SelectorActivity.this, photoArrayList, task, token);
-                uploader.delegate = SelectorActivity.this;
-                uploader.execute();
+            } else if (photoArrayList.size() > 0) {
+                if (loadingDialog != null && loadingDialog.isShowing())
+                    loadingDialog.dismiss();
+                loadingDialog = Dialogs.getProgressLoadingDialog(SelectorActivity.this, photoArrayList.size());
+                loadingDialog.show();
+
+                Observable.defer(() -> Observable.just(photoArrayList))
+                        .flatMapIterable(list -> list)
+                        .filter(photo -> photo != null)
+                        .doOnSubscribe(photo -> DbxImagesUploader.clearActiveDirectory(task, token))
+                        .doOnNext(photo -> DbxImagesUploader.execute(task, photo, token))
+                        .subscribeOn(Schedulers.newThread())
+                        .timeout(30, TimeUnit.SECONDS)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(result -> loadingDialog.incrementProgress(1), e -> onImagesUploadComplete(false), () -> onImagesUploadComplete(true));
             }
         } catch (Exception e){
             e.printStackTrace();
@@ -152,18 +175,41 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     private void checkDate(){
-        DateGetter dateGetter = new DateGetter(SelectorActivity.this);
-        dateGetter.delegate = SelectorActivity.this;
-        dateGetter.execute();
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
+        loadingDialog = Dialogs.getLoadingDialog(SelectorActivity.this);
+            loadingDialog.show();
+
+        Observable.defer(() -> Observable.just(NTPDateGetter.execute()))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> onDateReceived(result), e -> e.printStackTrace());
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
-            new loadFromGallery().execute(data);
+            Observable.defer(() -> Observable.just(ImagesLoader.loadFromGallery(SelectorActivity.this, data, photoArrayList)))
+                    .subscribeOn(Schedulers.io())
+                    .timeout(30, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(result -> setupRecyclerView(result), e -> e.printStackTrace());
         } else if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            new loadFromCamera().execute();
+            Observable.defer(() -> Observable.just(ImagesLoader.loadFromCamera(SelectorActivity.this, id, photoArrayList)))
+                    .subscribeOn(Schedulers.io())
+                    .timeout(30, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(result -> setupRecyclerView(result), e -> e.printStackTrace());
         }
+    }
+
+    private void setupRecyclerView(ArrayList<Photo> result){
+        photoArrayList = result;
+        adapter.notifyItemInserted(photoArrayList.size());
+
+        FloatingActionsMenu floatingActionsMenu = (FloatingActionsMenu)findViewById(R.id.multiple_actions);
+        floatingActionsMenu.collapse();
     }
 
     @Override
@@ -187,73 +233,5 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private String uriToFilename(Uri uri) {
-        String path = null;
-
-        if (Build.VERSION.SDK_INT < 19) {
-            path = RealPathUtil.getRealPathFromURI_API11to18(SelectorActivity.this, uri);
-        } else {
-            path = RealPathUtil.getRealPathFromURI_API19(SelectorActivity.this, uri);
-        }
-        return path;
-    }
-
-    private void hideFAM(){
-        FloatingActionsMenu floatingActionsMenu = (FloatingActionsMenu)findViewById(R.id.multiple_actions);
-        floatingActionsMenu.collapse();
-    }
-
-    private class loadFromCamera extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            File path = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/qrReader Photos");
-            if (!path.exists())
-                path.mkdirs();
-            File imageFile = new File(path, "photo_" + id + ".jpg");
-
-            MediaScannerConnection.scanFile(SelectorActivity.this, new String[]{imageFile.getPath()}, null, null);
-
-            photoArrayList.add(new Photo(Uri.fromFile(imageFile), imageFile.getName(), new Date(path.lastModified())));
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-            adapter.notifyItemInserted(photoArrayList.size());
-            hideFAM();
-        }
-    }
-
-    private class loadFromGallery extends AsyncTask<Intent, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Void doInBackground(Intent... params) {
-            Intent data = params[0];
-            Uri uri = data.getData();
-            File file = new File(uriToFilename(uri));
-            Uri mImageCaptureUri = Uri.fromFile(file);
-
-            photoArrayList.add(new Photo(mImageCaptureUri, file.getName(), new Date(file.lastModified())));
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-            adapter.notifyItemInserted(photoArrayList.size());
-            hideFAM();
-        }
     }
 }
