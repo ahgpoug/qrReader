@@ -1,4 +1,4 @@
-package ahgpoug.qrreader.asyncTasks;
+package ahgpoug.qrreader.tasks;
 
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;

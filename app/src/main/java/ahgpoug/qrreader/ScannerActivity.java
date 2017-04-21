@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import ahgpoug.qrreader.asyncTasks.DbxSqliteReader;
+import ahgpoug.qrreader.tasks.DbxSQLiteReader;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.Dialogs;
 import ahgpoug.qrreader.util.RealPath;
@@ -59,7 +59,7 @@ public class ScannerActivity extends AppCompatActivity {
         initEvents();
     }
 
-    private void onSqliteTaskComplete(Task task, String token){
+    private void onSQLiteTaskComplete(Task task, String token){
         if (loadingDialog != null && loadingDialog.isShowing())
             loadingDialog.dismiss();
         Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
@@ -68,7 +68,7 @@ public class ScannerActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void onSqliteTaskError(){
+    private void onSQLiteTaskError(){
         if (loadingDialog != null && loadingDialog.isShowing())
             loadingDialog.dismiss();
         Toast.makeText(ScannerActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
@@ -212,12 +212,12 @@ public class ScannerActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            Observable.defer(() -> Observable.just(DbxSqliteReader.execute(ScannerActivity.this, id, token)))
+            Observable.defer(() -> Observable.just(DbxSQLiteReader.execute(ScannerActivity.this, id, token)))
                     .filter(result -> result != null)
                     .subscribeOn(Schedulers.io())
                     .timeout(30, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(result -> onSqliteTaskComplete(result.getTask(), result.getToken()), e -> onSqliteTaskError());
+                    .subscribe(result -> onSQLiteTaskComplete(result.getTask(), result.getToken()), e -> onSQLiteTaskError());
         });
     }
 }

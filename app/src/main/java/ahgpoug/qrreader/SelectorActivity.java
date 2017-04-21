@@ -28,9 +28,9 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
-import ahgpoug.qrreader.asyncTasks.DbxImagesUploader;
-import ahgpoug.qrreader.asyncTasks.ImagesLoader;
-import ahgpoug.qrreader.asyncTasks.NTPDateGetter;
+import ahgpoug.qrreader.tasks.DbxImagesUploader;
+import ahgpoug.qrreader.tasks.ImagesLoader;
+import ahgpoug.qrreader.tasks.NTPDateGetter;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.objects.Photo;

@@ -15,7 +15,7 @@ import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-import ahgpoug.qrreader.asyncTasks.DbxPDFDownloader;
+import ahgpoug.qrreader.tasks.DbxPDFDownloader;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.Dialogs;
 import io.reactivex.Observable;
