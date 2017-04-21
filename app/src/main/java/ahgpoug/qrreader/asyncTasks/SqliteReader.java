@@ -33,17 +33,20 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
         this.token = token;
         this.id = id;
 
-        loadingDialog = new MaterialDialog.Builder(context)
-                .content("Загрузка...")
-                .progress(true, 0)
-                .progressIndeterminateStyle(false)
-                .cancelable(false)
-                .show();
+
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
+        //if (context != null && loadingDialog != null) {
+            loadingDialog = new MaterialDialog.Builder(context)
+                    .content("Загрузка...")
+                    .progress(true, 0)
+                    .progressIndeterminateStyle(false)
+                    .cancelable(false)
+                    .show();
+        //}
     }
 
     @Override
@@ -52,6 +55,7 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
             token = Crypto.decrypt(token);
         } catch (Exception e){
             e.printStackTrace();
+            return 0;
         }
 
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
@@ -102,7 +106,10 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
     @Override
     protected void onPostExecute(Integer result) {
         super.onPostExecute(result);
-        loadingDialog.dismiss();
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+            loadingDialog = null;
+        }
 
         if (result == 0)
             Toast.makeText(context, "Ошибка", Toast.LENGTH_SHORT).show();
