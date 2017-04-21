@@ -14,6 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Frame;
@@ -23,23 +24,23 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 import java.io.File;
 import java.io.IOException;
 
-import ahgpoug.qrreader.asyncTasks.AsyncTasks;
-import ahgpoug.qrreader.asyncTasks.SqliteReader;
-import ahgpoug.qrreader.interfaces.responses.SqliteResponse;
+import ahgpoug.qrreader.asyncTasks.DbxSqliteReader;
 import ahgpoug.qrreader.objects.Task;
+import ahgpoug.qrreader.util.Dialogs;
 import ahgpoug.qrreader.util.RealPath;
 import ahgpoug.qrreader.util.Util;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class ScannerActivity extends AppCompatActivity implements SqliteResponse{
+public class ScannerActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 10;
 
     private SurfaceView cameraView;
     private BarcodeDetector barcodeDetector;
     private CameraSource cameraSource;
     private FloatingActionButton galleryFab;
+    private MaterialDialog loadingDialog;
 
 
     @Override
@@ -55,28 +56,18 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
         initEvents();
     }
 
-    @Override
-    public void onSqliteResponseComplete(Task task, String token) {
-        if (task == null){
-            Toast.makeText(ScannerActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
-            initViews();
-            initEvents();
-        } else {
-            Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
-            intent.putExtra("token", token);
-            intent.putExtra("task", task);
-            startActivity(intent);
-        }
-    }
-
-    private void onSqliteComplete(Task task, String token){
+    private void onSqliteTaskComplete(Task task, String token){
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
         Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
         intent.putExtra("token", token);
         intent.putExtra("task", task);
         startActivity(intent);
     }
 
-    private void onSqliteError(){
+    private void onSqliteTaskError(){
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
         Toast.makeText(ScannerActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
         initViews();
         initEvents();
@@ -196,10 +187,21 @@ public class ScannerActivity extends AppCompatActivity implements SqliteResponse
     }
 
     private void checkQrCode(final String id, final String token){
-        Observable.defer(() -> Observable.just(AsyncTasks.execSqliteReader(ScannerActivity.this, id, token)))
-                .filter(result -> result != null)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(result -> onSqliteComplete(result.getTask(), result.getToken()), e -> onSqliteError());
+        this.runOnUiThread(() -> {
+            loadingDialog = Dialogs.getLoadingDialog(ScannerActivity.this);
+            loadingDialog.show();
+
+            try {
+                cameraSource.release();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Observable.defer(() -> Observable.just(DbxSqliteReader.execute(ScannerActivity.this, id, token)))
+                    .filter(result -> result != null)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(result -> onSqliteTaskComplete(result.getTask(), result.getToken()), e -> onSqliteTaskError());
+        });
     }
 }

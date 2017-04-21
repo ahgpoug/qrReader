@@ -3,10 +3,7 @@ package ahgpoug.qrreader.asyncTasks;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
-import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 
@@ -14,48 +11,19 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-import ahgpoug.qrreader.interfaces.responses.SqliteResponse;
+import ahgpoug.qrreader.objects.CombinedTask;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.Crypto;
 
-public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
-    public SqliteResponse delegate = null;
+public class DbxSqliteReader {
+    public static CombinedTask execute(Context context, String id, String token){
+        Task task;
 
-    private Context context;
-    private String token;
-    private String id;
-    private Task task = null;
-
-    private MaterialDialog loadingDialog;
-
-    public SqliteReader(Context context, String id, String token){
-        this.context = context;
-        this.token = token;
-        this.id = id;
-
-
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        //if (context != null && loadingDialog != null) {
-            loadingDialog = new MaterialDialog.Builder(context)
-                    .content("Загрузка...")
-                    .progress(true, 0)
-                    .progressIndeterminateStyle(false)
-                    .cancelable(false)
-                    .show();
-        //}
-    }
-
-    @Override
-    protected Integer doInBackground(Void... params){
         try {
             token = Crypto.decrypt(token);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return 0;
+            return null;
         }
 
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
@@ -65,10 +33,10 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
 
         if (!path.exists()) {
             if (!path.mkdirs()) {
-                return 0;
+                return null;
             }
         } else if (!path.isDirectory()) {
-            return 0;
+            return null;
         }
 
         File file = new File(path, "sqlite.db");
@@ -92,7 +60,7 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return 0;
+            return null;
         } finally {
             db.close();
         }
@@ -100,24 +68,10 @@ public class SqliteReader extends AsyncTask<Void, Integer, Integer> {
         if (file.exists())
             file.delete();
 
-        return 1;
+        return new CombinedTask(task, token);
     }
 
-    @Override
-    protected void onPostExecute(Integer result) {
-        super.onPostExecute(result);
-        if (loadingDialog != null && loadingDialog.isShowing()) {
-            loadingDialog.dismiss();
-            loadingDialog = null;
-        }
-
-        if (result == 0)
-            Toast.makeText(context, "Ошибка", Toast.LENGTH_SHORT).show();
-
-        delegate.onSqliteResponseComplete(task, token);
-    }
-
-    private void removeExistingFile(File file){
+    private static void removeExistingFile(File file) {
         if (file.exists())
             file.delete();
     }
