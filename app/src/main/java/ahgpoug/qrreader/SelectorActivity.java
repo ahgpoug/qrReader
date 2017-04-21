@@ -36,7 +36,7 @@ import ahgpoug.qrreader.interfaces.responses.DateResponse;
 import ahgpoug.qrreader.interfaces.responses.ImagesUploaderResponse;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
-import ahgpoug.qrreader.util.RealPathUtil;
+import ahgpoug.qrreader.util.RealPath;
 
 public class SelectorActivity extends AppCompatActivity implements OnStartDragListener, ImagesUploaderResponse, DateResponse{
     private static final int PICK_IMAGE_REQUEST = 10;
@@ -193,9 +193,9 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         String path = null;
 
         if (Build.VERSION.SDK_INT < 19) {
-            path = RealPathUtil.getRealPathFromURI_API11to18(SelectorActivity.this, uri);
+            path = RealPath.getRealPathFromURI_API11to18(SelectorActivity.this, uri);
         } else {
-            path = RealPathUtil.getRealPathFromURI_API19(SelectorActivity.this, uri);
+            path = RealPath.getRealPathFromURI_API19(SelectorActivity.this, uri);
         }
         return path;
     }
