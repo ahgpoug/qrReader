@@ -60,8 +60,6 @@ public class ScannerActivity extends AppCompatActivity {
     }
 
     private void onSQLiteTaskComplete(Task task, String token){
-        if (loadingDialog != null && loadingDialog.isShowing())
-            loadingDialog.dismiss();
         Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
         intent.putExtra("token", token);
         intent.putExtra("task", task);
@@ -201,11 +199,6 @@ public class ScannerActivity extends AppCompatActivity {
 
     private void checkQrCode(final String id, final String token){
         this.runOnUiThread(() -> {
-            if (loadingDialog != null && loadingDialog.isShowing())
-                loadingDialog.dismiss();
-            loadingDialog = Dialogs.getLoadingDialog(ScannerActivity.this);
-            loadingDialog.show();
-
             try {
                 cameraSource.release();
             } catch (Exception e) {
@@ -216,6 +209,16 @@ public class ScannerActivity extends AppCompatActivity {
                     .filter(result -> result != null)
                     .subscribeOn(Schedulers.io())
                     .timeout(30, TimeUnit.SECONDS)
+                    .doOnSubscribe(d -> {
+                        if (loadingDialog != null && loadingDialog.isShowing())
+                            loadingDialog.dismiss();
+                        loadingDialog = Dialogs.getLoadingDialog(ScannerActivity.this);
+                        loadingDialog.show();
+                    })
+                    .doOnTerminate(() -> {
+                        if (loadingDialog != null && loadingDialog.isShowing())
+                            loadingDialog.dismiss();
+                    })
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(result -> onSQLiteTaskComplete(result.getTask(), result.getToken()), e -> onSQLiteTaskError());
         });

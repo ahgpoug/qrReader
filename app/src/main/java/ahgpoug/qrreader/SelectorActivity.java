@@ -81,9 +81,6 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     public void onImagesUploadComplete(boolean result){
-        if (loadingDialog != null && loadingDialog.isShowing())
-            loadingDialog.dismiss();
-
         if (result) {
             Toast.makeText(SelectorActivity.this, "Успешно загружено " + String.valueOf(photoArrayList.size()) + " файлов", Toast.LENGTH_SHORT).show();
             photoArrayList.clear();
@@ -95,20 +92,12 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
 
 
     private void onDateReceived(Date date){
-        if (loadingDialog != null && loadingDialog.isShowing())
-            loadingDialog.dismiss();
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
             Date taskDate = dateFormat.parse(task.getExpDate());
             if (date.after(taskDate)){
                 Toast.makeText(SelectorActivity.this, "Срок выполнения задания истек", Toast.LENGTH_SHORT).show();
             } else if (photoArrayList.size() > 0) {
-                if (loadingDialog != null && loadingDialog.isShowing())
-                    loadingDialog.dismiss();
-                loadingDialog = Dialogs.getProgressLoadingDialog(SelectorActivity.this, photoArrayList.size());
-                loadingDialog.show();
-
                 Observable.defer(() -> Observable.just(photoArrayList))
                         .flatMapIterable(list -> list)
                         .filter(photo -> photo != null)
@@ -116,6 +105,16 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
                         .doOnNext(photo -> DbxImagesUploader.execute(task, photo, token))
                         .subscribeOn(Schedulers.newThread())
                         .timeout(30, TimeUnit.SECONDS)
+                        .doOnSubscribe(d -> {
+                            if (loadingDialog != null && loadingDialog.isShowing())
+                                loadingDialog.dismiss();
+                            loadingDialog = Dialogs.getProgressLoadingDialog(SelectorActivity.this, photoArrayList.size());
+                            loadingDialog.show();
+                        })
+                        .doOnTerminate(() -> {
+                            if (loadingDialog != null && loadingDialog.isShowing())
+                                loadingDialog.dismiss();
+                        })
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(result -> loadingDialog.incrementProgress(1), e -> onImagesUploadComplete(false), () -> onImagesUploadComplete(true));
             }
@@ -175,14 +174,19 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     }
 
     private void checkDate(){
-        if (loadingDialog != null && loadingDialog.isShowing())
-            loadingDialog.dismiss();
-
-        loadingDialog = Dialogs.getLoadingDialog(SelectorActivity.this);
-            loadingDialog.show();
-
         Observable.defer(() -> Observable.just(NTPDateGetter.execute()))
                 .subscribeOn(Schedulers.io())
+                .timeout(30, TimeUnit.SECONDS)
+                .doOnSubscribe(d -> {
+                    if (loadingDialog != null && loadingDialog.isShowing())
+                        loadingDialog.dismiss();
+                    loadingDialog = Dialogs.getLoadingDialog(SelectorActivity.this);
+                    loadingDialog.show();
+                })
+                .doOnTerminate(() -> {
+                    if (loadingDialog != null && loadingDialog.isShowing())
+                        loadingDialog.dismiss();
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> onDateReceived(result), e -> e.printStackTrace());
     }
@@ -193,12 +197,32 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
             Observable.defer(() -> Observable.just(ImagesLoader.loadFromGallery(SelectorActivity.this, data, photoArrayList)))
                     .subscribeOn(Schedulers.io())
                     .timeout(30, TimeUnit.SECONDS)
+                    .doOnSubscribe(d -> {
+                        if (loadingDialog != null && loadingDialog.isShowing())
+                            loadingDialog.dismiss();
+                        loadingDialog = Dialogs.getLoadingDialog(SelectorActivity.this);
+                        loadingDialog.show();
+                    })
+                    .doOnTerminate(() -> {
+                        if (loadingDialog != null && loadingDialog.isShowing())
+                            loadingDialog.dismiss();
+                    })
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(result -> setupRecyclerView(result), e -> e.printStackTrace());
         } else if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Observable.defer(() -> Observable.just(ImagesLoader.loadFromCamera(SelectorActivity.this, id, photoArrayList)))
                     .subscribeOn(Schedulers.io())
                     .timeout(30, TimeUnit.SECONDS)
+                    .doOnSubscribe(d -> {
+                        if (loadingDialog != null && loadingDialog.isShowing())
+                            loadingDialog.dismiss();
+                        loadingDialog = Dialogs.getLoadingDialog(SelectorActivity.this);
+                        loadingDialog.show();
+                    })
+                    .doOnTerminate(() -> {
+                        if (loadingDialog != null && loadingDialog.isShowing())
+                            loadingDialog.dismiss();
+                    })
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(result -> setupRecyclerView(result), e -> e.printStackTrace());
         }
