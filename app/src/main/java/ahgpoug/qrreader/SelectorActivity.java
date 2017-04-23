@@ -28,13 +28,13 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
-import ahgpoug.qrreader.tasks.DbxImagesUploader;
-import ahgpoug.qrreader.tasks.ImagesLoader;
-import ahgpoug.qrreader.tasks.NTPDateGetter;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
+import ahgpoug.qrreader.tasks.DbxImagesUploader;
+import ahgpoug.qrreader.tasks.ImagesLoader;
+import ahgpoug.qrreader.tasks.NTPDateGetter;
 import ahgpoug.qrreader.util.Dialogs;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -103,7 +103,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
                         .filter(photo -> photo != null)
                         .doOnSubscribe(photo -> DbxImagesUploader.clearActiveDirectory(task, token))
                         .doOnNext(photo -> DbxImagesUploader.execute(task, photo, token))
-                        .subscribeOn(Schedulers.newThread())
+                        .subscribeOn(Schedulers.io())
                         .timeout(30, TimeUnit.SECONDS)
                         .doOnSubscribe(d -> {
                             if (loadingDialog != null && loadingDialog.isShowing())

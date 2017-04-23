@@ -27,8 +27,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import ahgpoug.qrreader.tasks.DbxSQLiteReader;
 import ahgpoug.qrreader.objects.Task;
+import ahgpoug.qrreader.tasks.DbxSQLiteReader;
 import ahgpoug.qrreader.util.Dialogs;
 import ahgpoug.qrreader.util.RealPath;
 import ahgpoug.qrreader.util.Util;
