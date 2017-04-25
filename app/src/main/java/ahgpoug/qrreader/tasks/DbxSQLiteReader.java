@@ -1,4 +1,4 @@
-package ahgpoug.qrreader.asyncTasks;
+package ahgpoug.qrreader.tasks;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -15,7 +15,7 @@ import ahgpoug.qrreader.objects.CombinedTask;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.Crypto;
 
-public class DbxSqliteReader {
+public class DbxSQLiteReader {
     public static CombinedTask execute(Context context, String id, String token){
         Task task;
 

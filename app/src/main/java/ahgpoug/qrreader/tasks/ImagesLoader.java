@@ -1,4 +1,4 @@
-package ahgpoug.qrreader.asyncTasks;
+package ahgpoug.qrreader.tasks;
 
 import android.content.Context;
 import android.content.Intent;

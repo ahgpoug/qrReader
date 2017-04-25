@@ -15,8 +15,8 @@ import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-import ahgpoug.qrreader.asyncTasks.DbxPDFDownloader;
 import ahgpoug.qrreader.objects.Task;
+import ahgpoug.qrreader.tasks.DbxPDFDownloader;
 import ahgpoug.qrreader.util.Dialogs;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -82,9 +82,6 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
         swipeRefreshLayout.setRefreshing(false);
         pdfView.setEnabled(true);
 
-        if (loadingDialog != null && loadingDialog.isShowing())
-            loadingDialog.dismiss();
-
         if (file != null) {
             loadPDF(file);
         } else {
@@ -97,17 +94,24 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void downloadPDF(boolean isSwiped){
-        if (!isSwiped){
-            if (loadingDialog != null && loadingDialog.isShowing())
-                loadingDialog.dismiss();
-            loadingDialog = Dialogs.getLoadingDialog(TaskActivity.this);
-            loadingDialog.show();
-        }
-
         Observable.defer(() -> Observable.just(DbxPDFDownloader.execute(task, token)))
                 .filter(result -> result != null)
                 .subscribeOn(Schedulers.io())
                 .timeout(30, TimeUnit.SECONDS)
+                .doOnSubscribe(d -> {
+                    if (!isSwiped) {
+                        if (loadingDialog != null && loadingDialog.isShowing())
+                            loadingDialog.dismiss();
+                        loadingDialog = Dialogs.getLoadingDialog(TaskActivity.this);
+                        loadingDialog.show();
+                    }
+                })
+                .doOnTerminate(() -> {
+                    if (!isSwiped) {
+                        if (loadingDialog != null && loadingDialog.isShowing())
+                            loadingDialog.dismiss();
+                    }
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> onPDFdownloadComplete(result, isSwiped), e -> onPDFdownloadComplete(null, isSwiped));
     }

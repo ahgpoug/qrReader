@@ -1,4 +1,4 @@
-package ahgpoug.qrreader.asyncTasks;
+package ahgpoug.qrreader.tasks;
 
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
