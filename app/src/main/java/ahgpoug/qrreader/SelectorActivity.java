@@ -45,8 +45,8 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     private static final int CAMERA_REQUEST = 11;
     private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
 
-    private CombinedTask combinedTask;
-    private ArrayList<Photo> photoArrayList = new ArrayList<>();
+    private static CombinedTask combinedTask;
+    private static ArrayList<Photo> photoArrayList = new ArrayList<>();
     private static String id;
 
     private PhotoRecyclerAdapter adapter;
