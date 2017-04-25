@@ -11,10 +11,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import ahgpoug.qrreader.objects.CombinedTask;
 import ahgpoug.qrreader.objects.Task;
 
 public class DbxPDFDownloader {
-    public static File execute(Task task, String token){
+    public static File execute(CombinedTask combinedTask){
+        Task task = combinedTask.getTask();
+        String token = combinedTask.getToken();
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
         DbxClientV2 client = new DbxClientV2(config, token);
         String directory = "/Задания/";

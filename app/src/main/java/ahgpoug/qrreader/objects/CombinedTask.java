@@ -1,6 +1,8 @@
 package ahgpoug.qrreader.objects;
 
-public class CombinedTask {
+import java.io.Serializable;
+
+public class CombinedTask implements Serializable {
     private Task task;
     private String token;
 

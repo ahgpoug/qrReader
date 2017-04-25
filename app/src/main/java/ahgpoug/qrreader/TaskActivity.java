@@ -15,7 +15,7 @@ import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-import ahgpoug.qrreader.objects.Task;
+import ahgpoug.qrreader.objects.CombinedTask;
 import ahgpoug.qrreader.tasks.DbxPDFDownloader;
 import ahgpoug.qrreader.util.Dialogs;
 import io.reactivex.Observable;
@@ -25,8 +25,7 @@ import io.reactivex.schedulers.Schedulers;
 public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     private PDFView pdfView;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private Task task;
-    private String token;
+    private CombinedTask combinedTask;
     private OnPageScrollListener onPageScrollListener;
     private OnErrorListener onErrorListener;
     private MaterialDialog loadingDialog;
@@ -35,8 +34,7 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task);
-        task = (Task) getIntent().getExtras().getSerializable("task");
-        token = getIntent().getExtras().getString("token");
+        combinedTask = (CombinedTask) getIntent().getExtras().getSerializable("combinedTask");
 
         initViews();
         checkPDF();
@@ -57,7 +55,7 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         onErrorListener = (t -> {
             Toast.makeText(TaskActivity.this, "Ошибка загрузки", Toast.LENGTH_SHORT).show();
-            File file = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/downloads/" + task.getTaskName() + ".pdf");
+            File file = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/downloads/" + combinedTask.getTask().getTaskName() + ".pdf");
             if (file.exists())
                 file.delete();
             downloadPDF(false);
@@ -67,7 +65,7 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void checkPDF(){
-        File file = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/downloads/" + task.getTaskName() + ".pdf");
+        File file = new File(Environment.getExternalStorageDirectory().getPath(), "qrreader/downloads/" + combinedTask.getTask().getTaskName() + ".pdf");
         if (file.exists()) {
             if (Integer.parseInt(String.valueOf(file.length())) == 0)
                 downloadPDF(false);
@@ -94,7 +92,7 @@ public class TaskActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void downloadPDF(boolean isSwiped){
-        Observable.defer(() -> Observable.just(DbxPDFDownloader.execute(task, token)))
+        Observable.defer(() -> Observable.just(DbxPDFDownloader.execute(combinedTask)))
                 .filter(result -> result != null)
                 .subscribeOn(Schedulers.io())
                 .timeout(30, TimeUnit.SECONDS)

@@ -11,12 +11,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import ahgpoug.qrreader.objects.CombinedTask;
 import ahgpoug.qrreader.objects.Photo;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.Util;
 
 public class DbxImagesUploader {
-    public static void execute(Task task, Photo photo, String token){
+    public static void execute(CombinedTask combinedTask, Photo photo){
+        Task task = combinedTask.getTask();
+        String token = combinedTask.getToken();
         String userName = Util.Account.getCurrentUsername();
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
         DbxClientV2 client = new DbxClientV2(config, token);
@@ -41,11 +44,11 @@ public class DbxImagesUploader {
         }
     }
 
-    public static void clearActiveDirectory(Task task, String token){
+    public static void clearActiveDirectory(CombinedTask combinedTask){
         String userName = Util.Account.getCurrentUsername();
         DbxRequestConfig config = new DbxRequestConfig("dropbox/androidClient1");
-        DbxClientV2 client = new DbxClientV2(config, token);
-        String directory = String.format("/%s/%s/%s/", task.getGroupName(), task.getTaskName(), userName);
+        DbxClientV2 client = new DbxClientV2(config, combinedTask.getToken());
+        String directory = String.format("/%s/%s/%s/", combinedTask.getTask().getGroupName(), combinedTask.getTask().getTaskName(), userName);
         try {
             List<Metadata> result = client.files().listFolder(directory).getEntries();
             for (Metadata entry : result)

@@ -30,8 +30,8 @@ import java.util.concurrent.TimeUnit;
 import ahgpoug.qrreader.adapters.PhotoRecyclerAdapter;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.interfaces.SimpleItemTouchHelperCallback;
+import ahgpoug.qrreader.objects.CombinedTask;
 import ahgpoug.qrreader.objects.Photo;
-import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.tasks.DbxImagesUploader;
 import ahgpoug.qrreader.tasks.ImagesLoader;
 import ahgpoug.qrreader.tasks.NTPDateGetter;
@@ -45,11 +45,9 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     private static final int CAMERA_REQUEST = 11;
     private static final String CAPTURE_IMAGE_FILE_PROVIDER = "ahgpoug.qrreader.fileprovider";
 
-    private static Task task;
-    private static ArrayList<Photo> photoArrayList = new ArrayList<>();
+    private CombinedTask combinedTask;
+    private ArrayList<Photo> photoArrayList = new ArrayList<>();
     private static String id;
-
-    private String token;
 
     private PhotoRecyclerAdapter adapter;
     private ItemTouchHelper mItemTouchHelper;
@@ -61,8 +59,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_selector);
-        task = (Task) getIntent().getExtras().getSerializable("task");
-        token = getIntent().getExtras().getString("token");
+        combinedTask = (CombinedTask) getIntent().getExtras().getSerializable("combinedTask");
         initViews();
         initEvents();
     }
@@ -70,7 +67,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     @Override
     public void onBackPressed() {
         id = "";
-        task = null;
+        combinedTask = null;
         photoArrayList.clear();
         super.onBackPressed();
     }
@@ -94,15 +91,15 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
     private void onDateReceived(Date date){
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
-            Date taskDate = dateFormat.parse(task.getExpDate());
+            Date taskDate = dateFormat.parse(combinedTask.getTask().getExpDate());
             if (date.after(taskDate)){
                 Toast.makeText(SelectorActivity.this, "Срок выполнения задания истек", Toast.LENGTH_SHORT).show();
             } else if (photoArrayList.size() > 0) {
                 Observable.defer(() -> Observable.just(photoArrayList))
                         .flatMapIterable(list -> list)
                         .filter(photo -> photo != null)
-                        .doOnSubscribe(photo -> DbxImagesUploader.clearActiveDirectory(task, token))
-                        .doOnNext(photo -> DbxImagesUploader.execute(task, photo, token))
+                        .doOnSubscribe(photo -> DbxImagesUploader.clearActiveDirectory(combinedTask))
+                        .doOnNext(photo -> DbxImagesUploader.execute(combinedTask, photo))
                         .subscribeOn(Schedulers.io())
                         .timeout(30, TimeUnit.SECONDS)
                         .doOnSubscribe(d -> {
@@ -252,8 +249,7 @@ public class SelectorActivity extends AppCompatActivity implements OnStartDragLi
             }
         } else if (id == R.id.action_info) {
             Intent intent = new Intent(SelectorActivity.this, TaskActivity.class);
-            intent.putExtra("task", task);
-            intent.putExtra("token", token);
+            intent.putExtra("combinedTask", combinedTask);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);

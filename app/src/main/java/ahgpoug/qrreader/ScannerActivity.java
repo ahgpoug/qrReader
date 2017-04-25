@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import ahgpoug.qrreader.objects.Task;
+import ahgpoug.qrreader.objects.CombinedTask;
 import ahgpoug.qrreader.tasks.DbxSQLiteReader;
 import ahgpoug.qrreader.util.Dialogs;
 import ahgpoug.qrreader.util.RealPath;
@@ -59,10 +59,9 @@ public class ScannerActivity extends AppCompatActivity {
         initEvents();
     }
 
-    private void onSQLiteTaskComplete(Task task, String token){
+    private void onSQLiteTaskComplete(CombinedTask combinedTask){
         Intent intent = new Intent(ScannerActivity.this, SelectorActivity.class);
-        intent.putExtra("token", token);
-        intent.putExtra("task", task);
+        intent.putExtra("combinedTask", combinedTask);
         startActivity(intent);
     }
 
@@ -220,7 +219,7 @@ public class ScannerActivity extends AppCompatActivity {
                             loadingDialog.dismiss();
                     })
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(result -> onSQLiteTaskComplete(result.getTask(), result.getToken()), e -> onSQLiteTaskError());
+                    .subscribe(result -> onSQLiteTaskComplete(result), e -> onSQLiteTaskError());
         });
     }
 }
