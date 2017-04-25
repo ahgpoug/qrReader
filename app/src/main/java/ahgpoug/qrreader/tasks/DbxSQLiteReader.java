@@ -1,4 +1,4 @@
-package ahgpoug.qrreader.asyncTasks;
+package ahgpoug.qrreader.tasks;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -11,17 +11,17 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-import ahgpoug.qrreader.objects.CombinedResult;
+import ahgpoug.qrreader.objects.CombinedTask;
 import ahgpoug.qrreader.objects.Task;
 import ahgpoug.qrreader.util.Crypto;
 
-public class AsyncTasks {
-    public static CombinedResult execSqliteReader(Context context, String id, String token){
+public class DbxSQLiteReader {
+    public static CombinedTask execute(Context context, String id, String token){
         Task task;
 
         try {
             token = Crypto.decrypt(token);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -62,16 +62,17 @@ public class AsyncTasks {
             e.printStackTrace();
             return null;
         } finally {
-            db.close();
+            if (db != null)
+                db.close();
         }
 
         if (file.exists())
             file.delete();
 
-        return new CombinedResult(task, token);
+        return new CombinedTask(task, token);
     }
 
-    private static void removeExistingFile(File file){
+    private static void removeExistingFile(File file) {
         if (file.exists())
             file.delete();
     }

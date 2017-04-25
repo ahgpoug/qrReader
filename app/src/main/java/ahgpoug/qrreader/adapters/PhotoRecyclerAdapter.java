@@ -26,11 +26,25 @@ import ahgpoug.qrreader.interfaces.ItemTouchHelperViewHolder;
 import ahgpoug.qrreader.interfaces.OnStartDragListener;
 import ahgpoug.qrreader.objects.Photo;
 
+/**
+ * Адаптер для списка фотографий, представленных в виде сетки
+ */
 public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdapter.ViewHolder> implements ItemTouchHelperAdapter {
-
     private Context context;
     private ArrayList<Photo> values;
     private final OnStartDragListener dragStartListener;
+
+    /**
+     * Конструктор для апатера
+     * @param context Context вызываемой Activity
+     * @param values Список фотографий
+     * @param dragStartListener Интерфейс для перетаскивания объектов
+     */
+    public PhotoRecyclerAdapter(Context context, ArrayList<Photo> values, OnStartDragListener dragStartListener) {
+        this.context = context;
+        this.values = values;
+        this.dragStartListener = dragStartListener;
+    }
 
     class ViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder {
         private ImageView image;
@@ -55,12 +69,6 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
         public void onItemClear() {
             //itemView.setBackgroundColor(0);
         }
-    }
-
-    public PhotoRecyclerAdapter(Context context, ArrayList<Photo> values, OnStartDragListener dragStartListener) {
-        this.context = context;
-        this.values = values;
-        this.dragStartListener = dragStartListener;
     }
 
     @Override
@@ -97,9 +105,7 @@ public class PhotoRecyclerAdapter extends RecyclerView.Adapter<PhotoRecyclerAdap
                                 values.remove(holder.getLayoutPosition());
                                 notifyDataSetChanged();
                         })
-                        .onNegative((dialog, which) -> {
-                                dialog.dismiss();
-                        })
+                        .onNegative((dialog, which) -> dialog.dismiss())
                         .show();
                 return false;
             });

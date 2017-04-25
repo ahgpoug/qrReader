@@ -1,10 +1,10 @@
 package ahgpoug.qrreader.objects;
 
-public class CombinedResult {
+public class CombinedTask {
     private Task task;
     private String token;
 
-    public CombinedResult(Task task, String token){
+    public CombinedTask(Task task, String token){
         this.task = task;
         this.token = token;
     }
